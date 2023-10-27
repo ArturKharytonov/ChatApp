@@ -1,6 +1,6 @@
 {
-  "name": "WebUI",
-  "short_name": "WebUI",
+  "name": "ChatApp.Client",
+  "short_name": "ChatApp.Client",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",

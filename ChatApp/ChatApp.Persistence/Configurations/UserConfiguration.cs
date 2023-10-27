@@ -1,17 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-namespace Persistence.Configurations
+using System.Reflection.Emit;
+
+namespace ChatApp.Persistence.Configurations
 {
-    internal class UserConfiguration : IEntityTypeConfiguration<ChatApp.Domain.Users.User>
+    internal class UserConfiguration : IEntityTypeConfiguration<Domain.Users.User>
     {
-        public void Configure(EntityTypeBuilder<ChatApp.Domain.Users.User> builder)
+        public void Configure(EntityTypeBuilder<Domain.Users.User> builder)
         {
-            // using of Fluent API here
+            builder.HasKey(e => e.Id).HasName("PK__Users__3214EC07AEE8155C");
+
+            builder.Property(e => e.Email)
+                .HasMaxLength(40)
+                .IsUnicode(false);
+            builder.Property(e => e.Password)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+            builder.Property(e => e.Username)
+                .HasMaxLength(40)
+                .IsUnicode(false);
         }
     }
 }

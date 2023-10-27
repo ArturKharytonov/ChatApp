@@ -3,35 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Persistence.User.Interfaces;
+using ChatApp.Persistence.Context;
+using ChatApp.Persistence.Repositories.Friend.Interfaces;
 
-namespace Persistence.User
+namespace ChatApp.Persistence.Repositories.Friend
 {
-    public class UserRepository : IUserRepository
+    public class FriendRepository : IFriendRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ChatDbContext _context;
 
-        public UserRepository(ApplicationDbContext context)
+        public FriendRepository(ChatDbContext context)
         {
             _context = context;
         }
-
-        public Task<Domain.Users.User?> GetByIdAsync(int id)
+        public Task<Domain.Friends.Friend?> GetByIdAsync(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<Domain.Users.User>> GetAllAsync()
+        public Task<List<Domain.Friends.Friend>> GetAllAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task CreateAsync(Domain.Users.User entity)
+        public Task CreateAsync(Domain.Friends.Friend entity)
         {
             throw new NotImplementedException();
         }
 
-        public Task UpdateAsync(Domain.Users.User entity)
+        public Task UpdateAsync(Domain.Friends.Friend entity)
         {
             throw new NotImplementedException();
         }
