@@ -1,0 +1,59 @@
+﻿@page "/signup"
+
+<h3>Sign Up</h3>
+
+@if (_showErrors)
+{
+    <div class="alert alert-danger" role="alert">
+        @foreach (var error in _errors)
+        {
+            <p>@error</p>
+        }
+    </div>
+}
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Please enter your details</h5>
+        <EditForm Model="_registerModel" OnValidSubmit="SubmitForm">
+            <DataAnnotationsValidator/>
+            <ValidationSummary/>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <InputText Id="username" class="form-control" @bind-Value="_registerModel.Username"></InputText>
+                <ValidationMessage For="() => _registerModel.Username"/>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText Id="password" class="form-control" @bind-Value="_registerModel.Password"></InputText>
+                <ValidationMessage For="() => _registerModel.Password" />
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText Id="email" class="form-control" @bind-Value="_registerModel.Email"></InputText>
+                <ValidationMessage For="() => _registerModel.Email" />
+            </div>
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+        </EditForm>
+    </div>
+</div>
+
+@* 
+<form @onsubmit="SubmitForm">
+    <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" class="form-control" id="username" @bind="@_registerModel.Username" />
+    </div>
+    <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" class="form-control" id="password" @bind="@_registerModel.Password" />
+    </div>
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" class="form-control" id="email" @bind="@_registerModel.Email" />
+    </div>
+    <NavLink href="/login">Already have an account!</NavLink><br />
+    <button type="submit" class="btn btn-primary">Sign Up</button>
+</form> *@
+
+
+

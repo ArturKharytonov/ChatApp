@@ -1,6 +1,6 @@
 {
-  "name": "ChatApp.Client",
-  "short_name": "ChatApp.Client",
+  "name": "ChatApp.UI",
+  "short_name": "ChatApp.UI",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
