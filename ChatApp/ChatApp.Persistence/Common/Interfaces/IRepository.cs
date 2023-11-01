@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Persistence.Common.Interfaces
+﻿namespace ChatApp.Persistence.Common.Interfaces
 {
     public interface IRepository<T> 
         where T : class

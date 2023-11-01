@@ -1,0 +1,13 @@
+﻿@page "/logout"
+@using ChatApp.Application.AuthenticationService.Interfaces
+@inject IAuthenticationService AuthenticationService
+@inject NavigationManager NavigationManager
+<h3>Logout</h3>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthenticationService.LogoutAsync();
+        NavigationManager.NavigateTo("/");
+    }
+}

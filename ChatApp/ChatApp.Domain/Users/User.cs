@@ -1,14 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ChatApp.Domain.Friends;
+using ChatApp.Domain.Messages;
+using ChatApp.Domain.UsersAndRooms;
+using Microsoft.AspNetCore.Identity;
 
-namespace ChatApp.Domain.Users
+namespace ChatApp.Domain.Users;
+
+public class User : IdentityUser<int>
 {
-    public class User
-    {
-        public string Login { get; set; }
-        public string Password { get; set; }
-    }
+    public virtual ICollection<Friend> FriendFirstUsers { get; set; } = new List<Friend>();
+
+    public virtual ICollection<Friend> FriendSecondUsers { get; set; } = new List<Friend>();
+
+    public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
+
+    public virtual ICollection<UsersAndRoom> UsersAndRooms { get; set; } = new List<UsersAndRoom>();
 }
