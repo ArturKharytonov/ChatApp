@@ -28,7 +28,7 @@ namespace ChatApp.WebAPI.Services.JwtHandler
                 audience: _configuration["Jwt:Audience"],
                 notBefore: now,
                 claims: claims,
-                expires: now.Add(TimeSpan.FromMinutes(45)),
+                expires: now.Add(TimeSpan.FromMinutes(1)),
                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
             );
 

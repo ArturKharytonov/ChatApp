@@ -32,14 +32,14 @@ namespace ChatApp.Application.AuthenticationService
 
         public async Task<LoginResponseDto> LoginAsync(LoginModelDto model)
         {
-            var result = await _httpClientPwa.PostAsync<LoginModelDto, LoginResponseDto>(HttpClientPwa.LoginUrl, model);
+            var result =
+                await _httpClientPwa.PostAsync<LoginModelDto, LoginResponseDto>(HttpClientPwa.LoginUrl, model);
 
             if (result.Success && result.Result.Success)
             {
                 await _localStorageService.SetItemAsync("token", result.Result.Token);
 
                 ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(model.UserName);
-                //HttpClientPp.SetAuthorizationHeader(new AuthenticationHeaderValue("bearer", loginResult.Token));
             }
 
             return result.Result;
@@ -49,8 +49,6 @@ namespace ChatApp.Application.AuthenticationService
         {
             await _localStorageService.RemoveItemAsync("token");
             ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
-
-            //_httpClientPwa.SetAuthorizationHeader();
         }
     }
 }

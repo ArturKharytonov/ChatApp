@@ -16,7 +16,7 @@ namespace ChatApp.Application.CustomAuthenticationState
         public void MarkUserAsAuthenticated(string username)
         {
             var authenticatedUser =
-                new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, username) }, "apiauth"));
+                new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, username) }, "jwt"));
             var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
             NotifyAuthenticationStateChanged(authState);
         }

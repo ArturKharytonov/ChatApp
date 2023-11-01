@@ -19,8 +19,8 @@ namespace ChatApp.UI.Pages
         private async Task SubmitForm()
         {
             _showErrors = false;
-
             var result = await _authenticationService.LoginAsync(_loginModel);
+
             if (result.Success)
             {
                 _navigationManager.NavigateTo("/");

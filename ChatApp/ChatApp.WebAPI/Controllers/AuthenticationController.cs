@@ -10,7 +10,6 @@ namespace ChatApp.WebAPI.Controllers
 {
     [Route("auth")]
     [ApiController]
-    [AllowAnonymous]
     public class AuthenticationController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
@@ -39,10 +38,18 @@ namespace ChatApp.WebAPI.Controllers
             var result = await _userManager.CreateAsync(newUser, model.Password);
 
             if (result.Succeeded)
-                return Ok(new RegisterResponseDto{ Successful = true});
+                return Ok(new RegisterResponseDto{ Successful = true} );
             
             var errors = result.Errors.Select(x => x.Description);
             return BadRequest(new RegisterResponseDto { Successful = false, Errors = errors });
+        }
+
+
+        [HttpPost("test")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult Test([FromBody] LoginModelDto model)
+        {
+            return Ok(new LoginResponseDto{Success = true});
         }
     }
 }
