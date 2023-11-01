@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using ChatApp.Domain.Users;
 using ChatApp.Persistence.Context;
 using ChatApp.WebAPI.Services.JwtHandler;
 using ChatApp.WebAPI.Services.JwtHandler.Interfaces;
@@ -11,7 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ChatDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+builder.Services.AddIdentity<User, IdentityRole<int>>()
     .AddEntityFrameworkStores<ChatDbContext>()
     .AddDefaultTokenProviders();
 
@@ -35,14 +36,15 @@ builder.Services
         };
     });
 
-
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.WithOrigins("http://localhost:5000") // Replace with your Blazor app's URL
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("https://localhost:7000")
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod();
+
+    });
 });
 
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -62,11 +64,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
+app.UseCors();
 app.UseAuthentication();
-
-app.UseCors("AllowSpecificOrigin");
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

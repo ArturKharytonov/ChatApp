@@ -1,6 +1,6 @@
-﻿namespace ChatApp.UI.ViewModels.Responses
+﻿namespace ChatApp.Domain.DTOs.Http.Responses
 {
-    public class LoginResponse
+    public class LoginResponseDto
     {
         public bool Success { get; set; }
         public string? Error { get; set; }

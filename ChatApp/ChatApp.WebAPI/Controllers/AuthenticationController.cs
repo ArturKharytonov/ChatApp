@@ -1,11 +1,10 @@
-﻿using ChatApp.UI.ViewModels;
-using ChatApp.UI.ViewModels.Responses;
+﻿using ChatApp.Domain.DTOs.Http;
+using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.Users;
 using ChatApp.WebAPI.Services.JwtHandler.Interfaces;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using LoginResponse = ChatApp.UI.ViewModels.Responses.LoginResponse;
 
 namespace ChatApp.WebAPI.Controllers
 {
@@ -14,38 +13,36 @@ namespace ChatApp.WebAPI.Controllers
     [AllowAnonymous]
     public class AuthenticationController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<User> _userManager;
         private readonly IJwtService _jwtService;
-        public AuthenticationController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IJwtService jwtService)
+        public AuthenticationController(UserManager<User> userManager, IJwtService jwtService)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
             _jwtService = jwtService;
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> LoginAsync([FromBody] LoginModel login)
+        public async Task<IActionResult> LoginAsync([FromBody] LoginModelDto login)
         {
-            var result = await _signInManager.PasswordSignInAsync(login.Username, login.Password,
-                false, false);
-            if(!result.Succeeded)
-                return BadRequest(new LoginResponse {Success = false, Error = "Username or password is wrong"});
-            return Ok(new LoginResponse{Success = true, Token = _jwtService.GetToken(login.Username)});
+            var user = await _userManager.FindByNameAsync(login.UserName);
+            if (user != null && await _userManager.CheckPasswordAsync(user, login.Password))
+            {
+                return Ok(new LoginResponseDto { Success = true, Token = _jwtService.GetToken(login.UserName) });
+            }
+            return BadRequest(new LoginResponseDto {Success = false, Error = "UserName or password is wrong"});
         }
-
+        
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterAsync([FromBody] RegisterModel model)
+        public async Task<IActionResult> RegisterAsync([FromBody] RegisterModelDto model)
         {
-            var newUser = new IdentityUser { UserName = model.Username, Email = model.Email };
+            var newUser = new User { UserName = model.Username, Email = model.Email };
             var result = await _userManager.CreateAsync(newUser, model.Password);
 
             if (result.Succeeded)
-                return Ok(new RegisterResponse{ Successful = true});
+                return Ok(new RegisterResponseDto{ Successful = true});
             
-
             var errors = result.Errors.Select(x => x.Description);
-            return BadRequest(new RegisterResponse { Successful = false, Errors = errors });
+            return BadRequest(new RegisterResponseDto { Successful = false, Errors = errors });
         }
     }
 }

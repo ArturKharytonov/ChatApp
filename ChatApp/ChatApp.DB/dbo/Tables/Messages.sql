@@ -5,6 +5,6 @@
 	[SentAt] TIMESTAMP NOT NULL,
 	[RoomId] INT NOT NULL,
 	[SenderId] INT NOT NULL,
-	CONSTRAINT [FK_SenderId_Messages] FOREIGN KEY ([SenderId]) REFERENCES [Users]([Id]),
-	CONSTRAINT [FK_RoomId_Messages] FOREIGN KEY ([RoomId]) REFERENCES [Rooms]([Id]),
+	CONSTRAINT [FK_SenderId_Messages] FOREIGN KEY ([SenderId]) REFERENCES [AspNetUsers]([Id]),
+	CONSTRAINT [FK_RoomId_Messages] FOREIGN KEY ([RoomId]) REFERENCES [Rooms]([Id])
 )

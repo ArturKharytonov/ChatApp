@@ -1,5 +1,5 @@
 ﻿using ChatApp.Application.AuthenticationService.Interfaces;
-using ChatApp.UI.ViewModels;
+using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -12,7 +12,7 @@ namespace ChatApp.UI.Pages
         [Inject]
         private NavigationManager _navigationManager { get; set; }
 
-        private readonly LoginModel _loginModel = new();
+        private readonly LoginModelDto _loginModel = new();
 
         private bool _showErrors;
         private string Error = "";

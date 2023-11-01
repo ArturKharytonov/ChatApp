@@ -1,24 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Text;
+﻿using System.Security.Claims;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Blazored.LocalStorage;
-using ChatApp.Application.HttpClientPWAService.Interfaces;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace ChatApp.Application.CustomAuthenticationState
 {
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
-        private readonly IHttpClientPwa _httpClientPwa;
         private readonly ILocalStorageService _localStorage;
-        public CustomAuthenticationStateProvider(IHttpClientPwa httpClientPwa, ILocalStorageService localStorage)
+        public CustomAuthenticationStateProvider(ILocalStorageService localStorage)
         {
-            _httpClientPwa = httpClientPwa;
             _localStorage = localStorage;
         }
 
@@ -43,7 +34,7 @@ namespace ChatApp.Application.CustomAuthenticationState
             var savedToken = await _localStorage.GetItemAsync<string>("token");
             if (string.IsNullOrEmpty(savedToken))
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
-            _httpClientPwa.SetAuthorizationHeader(new AuthenticationHeaderValue("bearer", savedToken));
+            //_httpClientPwa.SetAuthorizationHeader(new AuthenticationHeaderValue("bearer", savedToken));
             return new AuthenticationState(
                 new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(savedToken), "jwt")));
         }

@@ -1,5 +1,5 @@
 ﻿using ChatApp.Application.AuthenticationService.Interfaces;
-using ChatApp.UI.ViewModels;
+using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
 namespace ChatApp.UI.Pages
 {
@@ -10,7 +10,7 @@ namespace ChatApp.UI.Pages
         [Inject]
         private NavigationManager _navigationManager { get; set; }
 
-        private readonly RegisterModel _registerModel = new();
+        private readonly RegisterModelDto _registerModel = new();
 
         private bool _showErrors;
 

@@ -1,6 +1,6 @@
-﻿namespace ChatApp.UI.ViewModels.Responses
+﻿namespace ChatApp.Domain.DTOs.Http.Responses
 {
-    public class RegisterResponse
+    public class RegisterResponseDto
     {
         public bool Successful { get; set; }
         public IEnumerable<string> Errors { get; set; }

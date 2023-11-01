@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ChatApp.UI.ViewModels
+namespace ChatApp.Domain.DTOs.Http
 {
-    public class RegisterModel
+    public class RegisterModelDto
     {
         [Required]
-        [Display(Name = "Username")]
+        [Display(Name = "UserName")]
         public string Username { get; set; }
 
         [Required]
