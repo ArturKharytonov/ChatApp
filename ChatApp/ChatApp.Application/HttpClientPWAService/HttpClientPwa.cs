@@ -12,6 +12,7 @@ namespace ChatApp.Application.HttpClientPWAService
     {
         public const string LoginUrl = "https://localhost:7223/auth/login";
         public const string RegisterUrl = "https://localhost:7223/auth/register";
+        public const string ChangePasswordUrl = "https://localhost:7223/api/user/change_password";
 
         private readonly ILocalStorageService _localStorageService;
         public HttpClientPwa(ILocalStorageService localStorageService)
@@ -28,7 +29,6 @@ namespace ChatApp.Application.HttpClientPWAService
             }
 
             var result = await httpClient.PostAsJsonAsync(requestUrl, data);
-
 
             return (result.StatusCode.Equals(HttpStatusCode.Unauthorized) && !result.IsSuccessStatusCode)
                 ? new ApiRequestResult<VResult>

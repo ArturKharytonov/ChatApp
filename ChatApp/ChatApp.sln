@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatApp.WebAPI", "ChatApp.W
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "ChatApp.DB", "ChatApp.DB\ChatApp.DB.sqlproj", "{DFA17F7C-38DC-43B1-AB9A-B3F785B050A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatApp.UI", "ChatApp.UI\ChatApp.UI.csproj", "{9D166B97-8336-4B4B-93E3-663DAAA1CD69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatApp.UI", "ChatApp.UI\ChatApp.UI.csproj", "{9D166B97-8336-4B4B-93E3-663DAAA1CD69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

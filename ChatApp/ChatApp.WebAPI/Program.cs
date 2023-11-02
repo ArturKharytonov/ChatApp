@@ -4,10 +4,14 @@ using ChatApp.Domain.Users;
 using ChatApp.Persistence.Context;
 using ChatApp.WebAPI.Services.JwtHandler;
 using ChatApp.WebAPI.Services.JwtHandler.Interfaces;
+using ChatApp.WebAPI.Services.UserService;
+using ChatApp.WebAPI.Services.UserService.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using IUserContext = ChatApp.WebAPI.Services.UserContext.Interfaces.IUserContext;
+using UserContext = ChatApp.WebAPI.Services.UserContext.UserContext;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ChatDbContext>(
@@ -45,7 +49,13 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddTransient<ClaimsPrincipal>(s =>
+    s.GetService<IHttpContextAccessor>().HttpContext.User);
+
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IUserContext, UserContext>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

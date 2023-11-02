@@ -21,17 +21,19 @@ namespace ChatApp.WebAPI.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> LoginAsync([FromBody] LoginModelDto login)
         {
             var user = await _userManager.FindByNameAsync(login.UserName);
             if (user != null && await _userManager.CheckPasswordAsync(user, login.Password))
             {
-                return Ok(new LoginResponseDto { Success = true, Token = _jwtService.GetToken(login.UserName) });
+                return Ok(new LoginResponseDto { Success = true, Token = _jwtService.GetToken(user.Id, login.UserName) });
             }
             return BadRequest(new LoginResponseDto {Success = false, Error = "UserName or password is wrong"});
         }
         
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterModelDto model)
         {
             var newUser = new User { UserName = model.Username, Email = model.Email };
@@ -42,14 +44,6 @@ namespace ChatApp.WebAPI.Controllers
             
             var errors = result.Errors.Select(x => x.Description);
             return BadRequest(new RegisterResponseDto { Successful = false, Errors = errors });
-        }
-
-
-        [HttpPost("test")]
-        [Authorize(AuthenticationSchemes = "Bearer")]
-        public IActionResult Test([FromBody] LoginModelDto model)
-        {
-            return Ok(new LoginResponseDto{Success = true});
         }
     }
 }
