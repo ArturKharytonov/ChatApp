@@ -1,0 +1,20 @@
+﻿@page "/grid"
+@using ChatApp.Domain.DTOs.UserDto
+
+<div class="col-md-6 col-lg-4 p-3">
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Search</RadzenText>
+        <RadzenTextBox Placeholder="type..." @oninput=@(args => OnChange(args.Value.ToString())) class="w-100" />
+    </RadzenCard>
+</div>
+
+<RadzenDataGrid FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" 
+                AllowSorting="true" Data="@_users" TItem="UserDto" ColumnWidth="150px">
+    <Columns>
+        <RadzenDataGridColumn TItem="UserDto" Property="Username" Title="Username"></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="UserDto" Property="Email" Title="Email"></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="UserDto" Property="PhoneNumber" Title="PhoneNumber"></RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+<RadzenPager HorizontalAlign="HorizontalAlign.Right" Count="_count" PageSize="5" PageNumbersCount="5" PageChanged="@PageChanged"/>

@@ -1,0 +1,33 @@
+﻿@page "/userform"
+@attribute [Authorize]
+
+<h3>User Account</h3>
+
+<div class="alert alert-heading" role="alert">
+    <p>@Message</p>
+</div>
+
+<form onsubmit="@OnSubmit">
+    <div class="form-group">
+        <label for="avatar">Avatar</label>
+        <input type="file" class="form-control-file" id="avatar"/>
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" class="form-control" id="email" @bind="User.Email" />
+    </div>
+
+    <div class="form-group">
+        <label for="nickname">Username</label>
+        <input type="text" class="form-control" id="nickname" @bind="User.Username" />
+    </div>
+
+    <div class="form-group">
+        <label for="phone">Phone number</label>
+        <input type="tel" class="form-control" id="phone" @bind="User.PhoneNumber" />
+    </div>
+    
+    <button type="button" class="btn btn-secondary" @onclick="OnInitialized">Reset</button>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

@@ -1,16 +1,16 @@
 ﻿using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.WebAPI.Services.UserService.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using IUserContext = ChatApp.WebAPI.Services.UserContext.Interfaces.IUserContext;
 
 namespace ChatApp.WebAPI.Controllers
 {
     [Route("api/user")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = "Bearer")]
+    [Authorize] 
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -32,6 +32,36 @@ namespace ChatApp.WebAPI.Controllers
                 return Ok(new ChangePasswordResponseDto{Success = true});
 
             return BadRequest(new ChangePasswordResponseDto{Success = false, Error = "Wrong current password"});
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUserAsync()
+        {
+            var userIdClaim = _userContext.GetUserId();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return BadRequest(new ChangePasswordResponseDto { Success = false, Error = "Unable to retrieve user id from token." });
+            return Ok(await _userService.GetUserAsync(userIdClaim));
+        }
+
+        [HttpPost("credentials")]
+        public async Task<IActionResult> ChangeUserCredentials([FromBody] UserDto user)
+        {
+            if (await _userService.UpdateUserAsync(user))
+                return Ok(new UpdateUserCredentialResponse { Message = "Credentials were updated" });
+            return BadRequest(new UpdateUserCredentialResponse { Message = "Username already exist" });
+        }
+
+        [HttpGet("by_credentials")]
+        public IActionResult GetUsersByCredentials([FromQuery] GridModelDto userInput)
+        {
+            var users = _userService.GetUsersByCredentials(userInput);
+
+            var totalCount = _userService.GetTotalCountOfUsers(userInput.Data);
+            return Ok(new GridModelResponse
+            {
+                Users = users,
+                TotalCount = totalCount
+            });
         }
     }
 }

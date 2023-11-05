@@ -29,7 +29,7 @@ namespace ChatApp.WebAPI.Controllers
             {
                 return Ok(new LoginResponseDto { Success = true, Token = _jwtService.GetToken(user.Id, login.UserName) });
             }
-            return BadRequest(new LoginResponseDto {Success = false, Error = "UserName or password is wrong"});
+            return BadRequest(new LoginResponseDto {Success = false, Error = "Username or password is wrong"});
         }
         
         [HttpPost("register")]

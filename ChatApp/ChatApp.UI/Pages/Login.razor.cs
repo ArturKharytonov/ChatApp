@@ -1,7 +1,6 @@
 ﻿using ChatApp.Application.AuthenticationService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ChatApp.UI.Pages
 {
