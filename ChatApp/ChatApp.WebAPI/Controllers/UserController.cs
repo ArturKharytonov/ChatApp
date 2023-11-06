@@ -21,7 +21,7 @@ namespace ChatApp.WebAPI.Controllers
             _userContext = userContext;
         }
 
-        [HttpPost("change_password")] // change on put
+        [HttpPost("change_password")]
         public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordDto changePassword)
         {
             var userIdClaim = _userContext.GetUserId();
@@ -57,7 +57,7 @@ namespace ChatApp.WebAPI.Controllers
             var users = _userService.GetUsersByCredentials(userInput);
 
             var totalCount = _userService.GetTotalCountOfUsers(userInput.Data);
-            return Ok(new GridModelResponse
+            return Ok(new GridModelResponse<UserDto>
             {
                 Users = users,
                 TotalCount = totalCount

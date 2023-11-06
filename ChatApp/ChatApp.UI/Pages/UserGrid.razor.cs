@@ -22,7 +22,7 @@ namespace ChatApp.UI.Pages
             _users = response.Users;
         }
 
-        async Task<GridModelResponse> GetUsers(int pageNumber)
+        async Task<GridModelResponse<UserDto>> GetUsers(int pageNumber)
             => await UserCredentialsService.GetUsersAsync(new GridModelDto
             {
                 PageNumber = pageNumber,

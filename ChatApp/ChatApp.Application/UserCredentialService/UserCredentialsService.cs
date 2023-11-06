@@ -37,9 +37,9 @@ namespace ChatApp.Application.UserCredentialService
             var result = await _clientPwa.PostAsync<UserDto, UpdateUserCredentialResponse>(HttpClientPwa.UpdateUser, user);
             return result.Result;
         }
-        public async Task<GridModelResponse> GetUsersAsync(GridModelDto gridModelDto)
+        public async Task<GridModelResponse<UserDto>> GetUsersAsync(GridModelDto gridModelDto)
         {
-            var result = await _clientPwa.GetAsync<GridModelResponse>(HttpClientPwa.GetUserByCredentials, gridModelDto);
+            var result = await _clientPwa.GetAsync<GridModelResponse<UserDto>>(HttpClientPwa.GetUserByCredentials, gridModelDto);
 
             return result.Result;
         }

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ChatApp.Domain.DTOs.Http.Responses
 {
-    public class GridModelResponse
+    public class GridModelResponse<T>
     {
-        public IEnumerable<UserDto.UserDto> Users { get; set; }
+        public IEnumerable<T> Users { get; set; }
         public int TotalCount { get; set; }
     }
 }

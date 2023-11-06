@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
 using AutoMapper;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
@@ -8,6 +10,7 @@ using ChatApp.Domain.Users;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
 using ChatApp.UI.Pages;
 using ChatApp.WebAPI.Services.UserService.Interfaces;
+using LinqKit;
 using Microsoft.AspNetCore.Identity;
 
 namespace ChatApp.WebAPI.Services.UserService
@@ -15,12 +18,10 @@ namespace ChatApp.WebAPI.Services.UserService
     public class UserService : IUserService
     {
         private readonly UserManager<User> _userManager;
-        private int _pageSize = 5;
-        private readonly IMapper _mapper;
-        public UserService(UserManager<User> userManager, IMapper mapper)
+        private const int _pageSize = 5;
+        public UserService(UserManager<User> userManager)
         {
             _userManager = userManager;
-            _mapper = mapper;
         }
 
         public async Task<User?> GetUserAsync(string id)
@@ -36,7 +37,6 @@ namespace ChatApp.WebAPI.Services.UserService
             var result =  await _userManager.ResetPasswordAsync(user, token, newPassword);
             return result.Succeeded;
         }
-
         public async Task<bool> UpdateUserAsync(UserDto user)
         {
             var existingUser = await _userManager.FindByIdAsync(user.Id.ToString());
@@ -51,7 +51,6 @@ namespace ChatApp.WebAPI.Services.UserService
 
             return result.Succeeded;
         }
-
         public int GetTotalCountOfUsers(string data)
         {
             var query = _userManager.Users
@@ -61,14 +60,12 @@ namespace ChatApp.WebAPI.Services.UserService
                     user.PhoneNumber.Contains(data));
             return query.Count();
         }
-
         public IEnumerable<UserDto> GetUsersByCredentials(GridModelDto data)
         {
-            var user = _userManager.Users
-                .Where(user =>
-                    user.UserName.Contains(data.Data) ||
-                    user.Email.Contains(data.Data) ||
-                    user.PhoneNumber.Contains(data.Data))
+            var searchPredicate = CreateSearchPredicate(data.Data);
+
+            var users = _userManager.Users
+                .Where(searchPredicate)
                 .Skip((data.PageNumber - 1) * _pageSize)
                 .Take(_pageSize)
                 .Select(user => new UserDto
@@ -79,9 +76,19 @@ namespace ChatApp.WebAPI.Services.UserService
                     PhoneNumber = user.PhoneNumber,
                 });
 
-            return user.ToImmutableList();
+            return users.ToImmutableList();
         }
+        private static Expression<Func<User, bool>> CreateSearchPredicate(string input)
+        {
+            var predicate = PredicateBuilder.New<User>(false);
 
+            predicate = predicate.Or(user =>
+                user.UserName.Contains(input) ||
+                user.Email.Contains(input) ||
+                user.PhoneNumber.Contains(input));
+
+            return predicate;
+        }
         private async Task<bool> DoesUsernameExistAsync(string username)
         {
             var existingUser = await _userManager.FindByNameAsync(username);
