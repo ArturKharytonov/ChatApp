@@ -5,6 +5,8 @@ using ChatApp.Domain.Users;
 using ChatApp.Persistence.Context;
 using ChatApp.WebAPI.Services.JwtHandler;
 using ChatApp.WebAPI.Services.JwtHandler.Interfaces;
+using ChatApp.WebAPI.Services.QueryBuilder.Interfaces;
+using ChatApp.WebAPI.Services.QueryBuilder;
 using ChatApp.WebAPI.Services.UserService;
 using ChatApp.WebAPI.Services.UserService.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -64,6 +66,7 @@ builder.Services.AddTransient<ClaimsPrincipal>(s =>
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IQueryBuilder<User>, QueryBuilder<User>>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 

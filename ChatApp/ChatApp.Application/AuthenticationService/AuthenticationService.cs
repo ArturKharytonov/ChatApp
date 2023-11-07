@@ -21,6 +21,11 @@ namespace ChatApp.Application.AuthenticationService
             _httpClientPwa = httpClientPwa;
         }
 
+        public async Task<ChangePasswordResponseDto> ChangePasswordAsync(ChangePasswordDto changePasswordDto)
+        {
+            var result = await _httpClientPwa.PostAsync<ChangePasswordDto, ChangePasswordResponseDto>(HttpClientPwa.ChangePasswordUrl, changePasswordDto);
+            return result.Result;
+        }
         public async Task<RegisterResponseDto> RegisterAsync(RegisterModelDto model)
         {
             var result = await _httpClientPwa.PostAsync<RegisterModelDto, RegisterResponseDto>(HttpClientPwa.RegisterUrl, model);
@@ -29,7 +34,6 @@ namespace ChatApp.Application.AuthenticationService
                 ? new RegisterResponseDto { Successful = false, Errors = result.Result?.Errors ?? new List<string> {"Error occurred"} }
                 : new RegisterResponseDto { Successful = true };
         }
-
         public async Task<LoginResponseDto> LoginAsync(LoginModelDto model)
         {
             var result =
@@ -44,7 +48,6 @@ namespace ChatApp.Application.AuthenticationService
 
             return result.Result;
         }
-
         public async Task LogoutAsync()
         {
             await _localStorageService.RemoveItemAsync("token");

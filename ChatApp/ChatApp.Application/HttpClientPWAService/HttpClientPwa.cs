@@ -1,8 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Blazored.LocalStorage;
 using ChatApp.Application.HttpClientPWAService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
@@ -13,10 +11,10 @@ namespace ChatApp.Application.HttpClientPWAService
     {
         public const string LoginUrl = "https://localhost:7223/auth/login";
         public const string RegisterUrl = "https://localhost:7223/auth/register";
-        public const string ChangePasswordUrl = "https://localhost:7223/api/user/change_password";
+        public const string ChangePasswordUrl = "https://localhost:7223/auth/change_password";
         public const string GetUser = "https://localhost:7223/api/user";
-        public const string UpdateUser = "https://localhost:7223/api/user/credentials";
-        public const string GetUserByCredentials = "https://localhost:7223/api/user/by_credentials";
+        public const string UpdateUserCredentials = "https://localhost:7223/api/user/credentials";
+        public const string GetUsersBySearch = "https://localhost:7223/api/user/page";
 
         private readonly ILocalStorageService _localStorageService;
         public HttpClientPwa(ILocalStorageService localStorageService)
@@ -46,18 +44,14 @@ namespace ChatApp.Application.HttpClientPWAService
                     StatusCode = result.StatusCode
                 };
         }
-        public async Task<ApiRequestResult<T>> GetAsync<T>(string requestUrl, GridModelDto? data = null)
+
+        public async Task<ApiRequestResult<T>> GetAsync<T>(string requestUrl)
         {
             using var httpClient = new HttpClient();
 
             await TryAddJwtTokenAsync(httpClient);
-
-            HttpResponseMessage response;
-            if (data != null)
-                response = await httpClient.GetAsync($"{requestUrl}?data={data.Data}&pageNumber={data.PageNumber}");
             
-            else
-                response = await httpClient.GetAsync(requestUrl);
+            var response = await httpClient.GetAsync(requestUrl);
 
             return response.StatusCode.Equals(HttpStatusCode.Unauthorized) && !response.IsSuccessStatusCode
                 ? new ApiRequestResult<T>
@@ -73,6 +67,7 @@ namespace ChatApp.Application.HttpClientPWAService
                     StatusCode = response.StatusCode
                 };
         }
+
         private async Task TryAddJwtTokenAsync(HttpClient client)
         {
             var token = await _localStorageService.GetItemAsync<string>("token");

@@ -1,6 +1,7 @@
 ﻿using ChatApp.Application.AuthenticationService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
+using Radzen;
 
 namespace ChatApp.UI.Pages
 {
@@ -11,12 +12,16 @@ namespace ChatApp.UI.Pages
         [Inject]
         private NavigationManager _navigationManager { get; set; }
 
-        private readonly LoginModelDto _loginModel = new();
+        private LoginModelDto _loginModel = new();
 
         private bool _showErrors;
         private string Error = "";
-        private async Task SubmitForm()
+        private async Task SubmitForm(LoginArgs args)
         {
+            _loginModel.UserName = args.Username;
+            _loginModel.Password = args.Password;
+
+
             _showErrors = false;
             var result = await _authenticationService.LoginAsync(_loginModel);
 
@@ -30,5 +35,8 @@ namespace ChatApp.UI.Pages
                 _showErrors = true;
             }
         }
+
+        private void OnRegister()
+            => _navigationManager.NavigateTo("/signup");
     }
 }

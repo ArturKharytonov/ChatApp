@@ -11,4 +11,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.13" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTOs\Builder\" />
+  </ItemGroup>
+
 </Project>

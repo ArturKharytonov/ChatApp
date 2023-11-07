@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ChatApp.Domain.DTOs.Http
+﻿namespace ChatApp.Domain.DTOs.Http
 {
-    public class GridModelDto
+    public class GridModelDto<T> 
+        where T : Enum
     {
         public int PageNumber { get; set; }
-        public string Data { get; set; }
+        public string? Data { get; set; }
+        public T? Column { get; set; }
+        public bool Asc { get; set; }
+        public bool Sorting { get; set; }
     }
 }

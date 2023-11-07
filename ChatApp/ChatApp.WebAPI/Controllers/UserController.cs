@@ -1,6 +1,8 @@
-﻿using ChatApp.Domain.DTOs.Http;
+﻿using System.Net;
+using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.UserDto;
+using ChatApp.Domain.Enums;
 using ChatApp.WebAPI.Services.UserService.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,19 +23,6 @@ namespace ChatApp.WebAPI.Controllers
             _userContext = userContext;
         }
 
-        [HttpPost("change_password")]
-        public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordDto changePassword)
-        {
-            var userIdClaim = _userContext.GetUserId();
-            if (string.IsNullOrEmpty(userIdClaim))
-                return BadRequest(new ChangePasswordResponseDto{ Success = false, Error = "Unable to retrieve user id from token." });
-            
-            if (await _userService.ChangePasswordAsync(userIdClaim, changePassword.NewPassword, changePassword.CurrentPassword))
-                return Ok(new ChangePasswordResponseDto{Success = true});
-
-            return BadRequest(new ChangePasswordResponseDto{Success = false, Error = "Wrong current password"});
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetUserAsync()
         {
@@ -48,20 +37,15 @@ namespace ChatApp.WebAPI.Controllers
         {
             if (await _userService.UpdateUserAsync(user))
                 return Ok(new UpdateUserCredentialResponse { Message = "Credentials were updated" });
-            return BadRequest(new UpdateUserCredentialResponse { Message = "Username already exist" });
+            return BadRequest(new UpdateUserCredentialResponse { Message = "UserName already exist" });
         }
 
-        [HttpGet("by_credentials")]
-        public IActionResult GetUsersByCredentials([FromQuery] GridModelDto userInput)
+        [HttpGet("page")]
+        public IActionResult GetUsersPage([FromQuery] GridModelDto<UserColumnsSorting> userInput)
         {
-            var users = _userService.GetUsersByCredentials(userInput);
+            var users = _userService.GetUsersPage(userInput);
 
-            var totalCount = _userService.GetTotalCountOfUsers(userInput.Data);
-            return Ok(new GridModelResponse<UserDto>
-            {
-                Users = users,
-                TotalCount = totalCount
-            });
+            return Ok(users);
         }
     }
 }

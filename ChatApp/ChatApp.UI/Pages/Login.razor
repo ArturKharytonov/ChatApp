@@ -1,30 +1,23 @@
 ﻿@page "/login"
 
-<h3>Login</h3>
 @if (_showErrors)
 {
-    <div class="alert alert-danger" role="alert">
-        <p>@Error</p>
-    </div>
+    <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter">
+        @Error
+    </RadzenAlert>
 }
 
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Please enter your details</h5>
-        <EditForm Model="_loginModel" OnValidSubmit="SubmitForm">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-            <div class="form-group">
-                <label for="username">Username</label>
-                <InputText Id="username" class="form-control" @bind-Value="_loginModel.UserName"></InputText>
-                <ValidationMessage For="() => _loginModel.UserName" />
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <InputText Id="password" class="form-control" @bind-Value="_loginModel.Password"></InputText>
-                <ValidationMessage For="() => _loginModel.Password" />
-            </div>
-            <button type="submit" class="btn btn-primary">Login</button>
-        </EditForm>
-    </div>
-</div>
+<RadzenStack Gap="0" Class="rz-my-12 rz-mx-auto rz-border-radius-6 rz-shadow-10" Style="width: 100%; max-width: 400px; overflow: hidden;">
+    <RadzenCard Class="rz-shadow-0 rz-border-radius-0 rz-background-color-info rz-p-12" style="text-align: center;">
+        <RadzenText TextStyle="TextStyle.DisplayH3" TagName="TagName.H2" Class="rz-color-white rz-mb-0">Login</RadzenText>
+    </RadzenCard>
+
+    <RadzenCard Class="rz-shadow-0 rz-p-12">
+        <RadzenTemplateForm Data="@(_loginModel)">
+            <RadzenLogin AllowRegister="true" AllowResetPassword="false"
+                         Login="SubmitForm"
+                         Register="OnRegister" />
+
+        </RadzenTemplateForm>
+    </RadzenCard>
+</RadzenStack>

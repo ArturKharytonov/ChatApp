@@ -5,7 +5,7 @@ namespace ChatApp.Domain.DTOs.Http
     public class RegisterModelDto
     {
         [Required]
-        [Display(Name = "Username")]
+        [Display(Name = "UserName")]
         public string Username { get; set; }
 
         [Required]

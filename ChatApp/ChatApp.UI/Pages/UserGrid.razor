@@ -1,15 +1,33 @@
 ﻿@page "/grid"
 @using ChatApp.Domain.DTOs.UserDto
+@using ChatApp.Domain.Enums
+
+@attribute [Authorize]
+
 
 <div class="col-md-6 col-lg-4 p-3">
     <RadzenCard>
         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Search</RadzenText>
-        <RadzenTextBox Placeholder="type..." @oninput=@(args => OnChange(args.Value.ToString())) class="w-100" />
+        <RadzenTextBox Placeholder="type..." @oninput=@(args => OnSearchChangeAsync(args.Value.ToString())) class="w-100" />
     </RadzenCard>
+
+    <RadzenSelectBar Size="ButtonSize.Small" @bind-Value=@_sorting TValue="bool" class="mb-5" Change=@(async () => await OnSortChangeAsync())>
+        <Items>
+            <RadzenSelectBarItem Text="On" Value="true" />
+            <RadzenSelectBarItem Text="Off" Value="false" />
+        </Items>
+    </RadzenSelectBar>
+    <RadzenSelectBar Disabled="!_sorting" Size="ButtonSize.Small" @bind-Value=@_asc TValue="bool" class="mb-5" Change=@(async () => await OnSortChangeAsync())>
+        <Items>
+            <RadzenSelectBarItem Text="Ascending" Value="true" />
+            <RadzenSelectBarItem Text="Descending" Value="false" />
+        </Items>
+    </RadzenSelectBar>
+    <RadzenDropDown Placeholder="Sort Column" Disabled="!_sorting" @bind-Value=@SortFieldValue TValue="UserColumnsSorting" Data="@SortingFieldsDropDown" Change="async () => await OnSortChangeAsync()" />
 </div>
 
 <RadzenDataGrid FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" 
-                AllowSorting="true" Data="@_users" TItem="UserDto" ColumnWidth="150px">
+                Data="@_users" TItem="UserDto" ColumnWidth="150px">
     <Columns>
         <RadzenDataGridColumn TItem="UserDto" Property="Username" Title="Username"></RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="UserDto" Property="Email" Title="Email"></RadzenDataGridColumn>

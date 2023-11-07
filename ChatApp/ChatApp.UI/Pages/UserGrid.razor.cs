@@ -1,10 +1,11 @@
-﻿using ChatApp.Application.UserCredentialService.Interfaces;
+﻿using System.Net;
+using ChatApp.Application.UserCredentialService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.UserDto;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
 using Radzen;
+using ChatApp.Domain.Enums;
 
 namespace ChatApp.UI.Pages
 {
@@ -13,37 +14,82 @@ namespace ChatApp.UI.Pages
         private IEnumerable<UserDto> _users;
         private int _count;
         private string? _input;
+        private int _currentPage = 1;
+
+        protected UserColumnsSorting SortFieldValue { get; set; }
+        protected bool _asc { get; set; }
+        protected bool _sorting { get; set; }
+
+        protected IEnumerable<UserColumnsSorting> SortingFieldsDropDown { get; set; }
 
         [Inject] private IUserCredentialsService UserCredentialsService { get; set; }
+        [Inject] NavigationManager NavigationManager { get; set; }
 
-        async Task PageChanged(PagerEventArgs args)
+
+        protected override async Task OnInitializedAsync()
         {
-            var response = await GetUsers(args.PageIndex + 1);
-            _users = response.Users;
-        }
+            _sorting = false;
+            _asc = true;
+            SortingFieldsDropDown = Enum.GetValues(typeof(UserColumnsSorting)).Cast<UserColumnsSorting>().ToList();
 
-        async Task<GridModelResponse<UserDto>> GetUsers(int pageNumber)
-            => await UserCredentialsService.GetUsersAsync(new GridModelDto
-            {
-                PageNumber = pageNumber,
-                Data = _input
-            });
+            var response = await GetUsers(1);
 
-        async Task OnChange(string? value)
-        {
-            _input = value;
-            if (!string.IsNullOrEmpty(_input))
+            if (response == null)
             {
-                var response = await GetUsers(1);
+                NavigationManager.NavigateTo("/logout");
+
+                StateHasChanged();
+            }
+
+            else
+            {
+
                 _users = response.Users;
                 _count = response.TotalCount;
             }
-            else
+        }
+
+
+        async Task<GridModelResponse<UserDto>?> GetUsers(int pageNumber)
+        {
+            var model = new GridModelDto<UserColumnsSorting>
             {
-                // get all users
-                _count = 0;
-                _users = new List<UserDto>();
+                PageNumber = pageNumber,
+                Data = _input,
+                Sorting = _sorting
+            };
+
+            if (_sorting)
+            {
+                model.Column = SortFieldValue;
+                model.Asc = _asc;
             }
+            return await UserCredentialsService.GetUsersAsync(model);
+        }
+
+        async Task PageChanged(PagerEventArgs args)
+        {
+            _currentPage = args.PageIndex + 1;
+
+            var response = await GetUsers(_currentPage);
+            _users = response.Users;
+        }
+
+        async Task OnSearchChangeAsync(string? value)
+        {
+            _input = value;
+
+            var response = await GetUsers(1);
+            _users = response.Users;
+            _count = response.TotalCount;
+        }
+
+        async Task OnSortChangeAsync()
+        {
+            var response = await GetUsers(_currentPage);
+
+            _users = response.Users;
+            _count = response.TotalCount;
         }
     }
 }

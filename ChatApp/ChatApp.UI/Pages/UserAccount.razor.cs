@@ -1,10 +1,7 @@
 ﻿using ChatApp.Application.UserCredentialService.Interfaces;
-using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.UserDto;
-using ChatApp.Domain.Users;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace ChatApp.UI.Pages
 {
@@ -24,15 +21,10 @@ namespace ChatApp.UI.Pages
 
             StateHasChanged();
         }
-
         private async Task OnSubmit()
         {
             var response = await UserCredentialsService.UpdateUserAsync(User);
             Message = response.Message;
-        }
-        public void HandleFileUpload(InputFileChangeEventArgs e)
-        {
-            var file = e.File;
         }
     }
 }
