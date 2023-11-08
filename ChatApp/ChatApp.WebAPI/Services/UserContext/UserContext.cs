@@ -18,7 +18,5 @@ namespace ChatApp.WebAPI.Services.UserContext
             var userIdClaim = _user.FindFirst(ClaimTypes.NameIdentifier);
             return userIdClaim?.Value;
         }
-
-        
     }
 }

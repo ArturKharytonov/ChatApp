@@ -24,7 +24,6 @@ namespace ChatApp.WebAPI.Services.QueryBuilder
                 else
                     expression = Expression.OrElse(expression, containsCall);
             }
-
             return Expression.Lambda<Func<TEntity, bool>>(expression!, parameter);
         }
         public IQueryable<TEntity> OrderByQuery(IQueryable<TEntity> source, string orderByValue, bool orderByType)

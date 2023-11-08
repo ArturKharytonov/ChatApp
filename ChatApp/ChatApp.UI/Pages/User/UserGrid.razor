@@ -11,23 +11,23 @@
         <RadzenTextBox Placeholder="type..." @oninput=@(args => OnSearchChangeAsync(args.Value.ToString())) class="w-100" />
     </RadzenCard>
 
-    <RadzenSelectBar Size="ButtonSize.Small" @bind-Value=@_sorting TValue="bool" class="mb-5" Change=@(async () => await OnSortChangeAsync())>
+    <RadzenSelectBar Size="ButtonSize.Small" @bind-Value=@Sorting TValue="bool" class="mb-5" Change=@(async () => await OnSortChangeAsync())>
         <Items>
             <RadzenSelectBarItem Text="On" Value="true" />
             <RadzenSelectBarItem Text="Off" Value="false" />
         </Items>
     </RadzenSelectBar>
-    <RadzenSelectBar Disabled="!_sorting" Size="ButtonSize.Small" @bind-Value=@_asc TValue="bool" class="mb-5" Change=@(async () => await OnSortChangeAsync())>
+    <RadzenSelectBar Disabled="!Sorting" Size="ButtonSize.Small" @bind-Value=@Asc TValue="bool" class="mb-5" Change=@(async () => await OnSortChangeAsync())>
         <Items>
             <RadzenSelectBarItem Text="Ascending" Value="true" />
             <RadzenSelectBarItem Text="Descending" Value="false" />
         </Items>
     </RadzenSelectBar>
-    <RadzenDropDown Placeholder="Sort Column" Disabled="!_sorting" @bind-Value=@SortFieldValue TValue="UserColumnsSorting" Data="@SortingFieldsDropDown" Change="async () => await OnSortChangeAsync()" />
+    <RadzenDropDown Placeholder="Sort Column" Disabled="!Sorting" @bind-Value=@SortFieldValue TValue="UserColumnsSorting" Data="@SortingFieldsDropDown" Change="async () => await OnSortChangeAsync()" />
 </div>
 
 <RadzenDataGrid FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" 
-                Data="@_users" TItem="UserDto" ColumnWidth="150px">
+                Data="@Items" TItem="UserDto" ColumnWidth="150px">
     <Columns>
         <RadzenDataGridColumn TItem="UserDto" Property="Username" Title="Username"></RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="UserDto" Property="Email" Title="Email"></RadzenDataGridColumn>
@@ -35,4 +35,4 @@
     </Columns>
 </RadzenDataGrid>
 
-<RadzenPager HorizontalAlign="HorizontalAlign.Right" Count="_count" PageSize="5" PageNumbersCount="5" PageChanged="@PageChanged"/>
+<RadzenPager HorizontalAlign="HorizontalAlign.Right" Count="Count" PageSize="5" PageNumbersCount="5" PageChanged="@PageChanged"/>

@@ -3,7 +3,7 @@ using ChatApp.Domain.Users;
 
 namespace ChatApp.Domain.Messages;
 
-public partial class Message
+public class Message
 {
     public int Id { get; set; }
 

@@ -20,7 +20,6 @@ namespace ChatApp.WebAPI.Services.UserService
     {
         private readonly UserManager<User> _userManager;
         private readonly IQueryBuilder<User> _queryBuilder;
-
         private const int _pageSize = 5;
         public UserService(UserManager<User> userManager, IQueryBuilder<User> queryBuilder)
         {
@@ -30,6 +29,7 @@ namespace ChatApp.WebAPI.Services.UserService
 
         public async Task<User?> GetUserAsync(string id)
             => await _userManager.FindByIdAsync(id);
+
         public async Task<bool> ChangePasswordAsync(string id, string newPassword, string currentPassword)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -45,7 +45,9 @@ namespace ChatApp.WebAPI.Services.UserService
         public async Task<bool> UpdateUserAsync(UserDto user)
         {
             var existingUser = await _userManager.FindByIdAsync(user.Id.ToString());
-            if(existingUser == null || await DoesUsernameExistAsync(user.Username)) 
+            ;
+            if(existingUser == null || (await DoesUsernameExistAsync(user.Username) &&
+                                        !user.Username.Equals(existingUser.UserName))) 
                 return false;
 
             existingUser.UserName = user.Username;
@@ -68,7 +70,7 @@ namespace ChatApp.WebAPI.Services.UserService
                 users = _queryBuilder.OrderByQuery(users, data.Column.ToString(), data.Asc);
 
             var userInformation = users
-                .Skip((data.PageNumber - 1) * _pageSize)
+                .Skip(data.PageNumber * _pageSize)
                 .Take(_pageSize)
                 .Select(user => new UserDto
                 {
@@ -82,7 +84,7 @@ namespace ChatApp.WebAPI.Services.UserService
 
             return new GridModelResponse<UserDto>
             {
-                Users = userInformation,
+                Items = userInformation,
                 TotalCount = totalCount
             };
         }

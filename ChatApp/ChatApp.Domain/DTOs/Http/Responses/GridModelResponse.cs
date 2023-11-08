@@ -9,7 +9,7 @@ namespace ChatApp.Domain.DTOs.Http.Responses
 {
     public class GridModelResponse<T>
     {
-        public IEnumerable<T> Users { get; set; }
+        public IEnumerable<T> Items { get; set; }
         public int TotalCount { get; set; }
     }
 }

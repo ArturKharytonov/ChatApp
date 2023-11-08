@@ -1,4 +1,5 @@
 ﻿@page "/userform"
+@using Microsoft.AspNetCore.Components
 @attribute [Authorize]
 
 <h3>User Account</h3>
@@ -24,12 +25,9 @@
     </div>
 
     <div class="form-group">
-        @* <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Telephone</RadzenText>
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Telephone</RadzenText>
         <RadzenMask Mask="(***) ***-****" CharacterPattern="[0-9]" Placeholder="(000) 000-0000" Name="Phone"
-                    @bind-Value=@User.PhoneNumber Style="width: 100%;" /> *@
-
-        <label for="phone">Phone number</label>
-        <input type="tel" class="form-control" id="phone" @bind="User.PhoneNumber"/>
+                    @bind-Value=@User.PhoneNumber Style="width: 100%;" />
     </div>
     
     <button type="button" class="btn btn-secondary" @onclick="OnInitialized">Reset</button>

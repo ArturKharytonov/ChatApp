@@ -1,9 +1,8 @@
 ﻿using ChatApp.Application.AuthenticationService.Interfaces;
-using ChatApp.Application.UserCredentialService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
 
-namespace ChatApp.UI.Pages
+namespace ChatApp.UI.Pages.User
 {
     public partial class ChangePassword
     {
@@ -22,7 +21,7 @@ namespace ChatApp.UI.Pages
             var result = await AuthenticationService.ChangePasswordAsync(_changePasswordDto);
             if (result.Success)
                 _showMessage = true;
-            
+
             else
             {
                 _showErrors = true;

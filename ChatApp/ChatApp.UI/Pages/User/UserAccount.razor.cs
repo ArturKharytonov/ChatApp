@@ -1,20 +1,20 @@
-﻿using ChatApp.Application.UserCredentialService.Interfaces;
+﻿using ChatApp.Application.UserApplicationService.Interfaces;
 using ChatApp.Domain.DTOs.UserDto;
 using Microsoft.AspNetCore.Components;
 
 
-namespace ChatApp.UI.Pages
+namespace ChatApp.UI.Pages.User
 {
     public partial class UserAccount
     {
-        public UserDto User = new ();
+        public UserDto User = new();
         public string Message;
-        [Inject] IUserCredentialsService UserCredentialsService { get; set; }
+        [Inject] IUserApplicationService UserApplicationService { get; set; }
         [Inject] NavigationManager NavigationManager { get; set; }
 
         protected override async void OnInitialized()
         {
-            User = await UserCredentialsService.GetUserAsync();
+            User = await UserApplicationService.GetUserAsync();
 
             if (User == null)
                 NavigationManager.NavigateTo("/logout");
@@ -23,7 +23,7 @@ namespace ChatApp.UI.Pages
         }
         private async Task OnSubmit()
         {
-            var response = await UserCredentialsService.UpdateUserAsync(User);
+            var response = await UserApplicationService.UpdateUserAsync(User);
             Message = response.Message;
         }
     }

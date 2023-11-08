@@ -3,9 +3,9 @@ using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
 
-namespace ChatApp.Application.UserCredentialService.Interfaces
+namespace ChatApp.Application.UserApplicationService.Interfaces
 {
-    public interface IUserCredentialsService
+    public interface IUserApplicationService
     {
         Task<UserDto> GetUserAsync();
         Task<GridModelResponse<UserDto>> GetUsersAsync(GridModelDto<UserColumnsSorting> gridModelDto);

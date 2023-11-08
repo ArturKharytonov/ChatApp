@@ -1,7 +1,8 @@
 ﻿using ChatApp.Application.AuthenticationService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
-namespace ChatApp.UI.Pages
+
+namespace ChatApp.UI.Pages.Authentication
 {
     public partial class SignUp
     {

@@ -3,7 +3,7 @@ using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 
-namespace ChatApp.UI.Pages
+namespace ChatApp.UI.Pages.Authentication
 {
     public partial class Login
     {
