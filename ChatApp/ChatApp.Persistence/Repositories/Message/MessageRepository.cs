@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ChatApp.Persistence.Context;
 using ChatApp.Persistence.Repositories.Message.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Persistence.Repositories.Message
 {
@@ -21,9 +22,9 @@ namespace ChatApp.Persistence.Repositories.Message
             throw new NotImplementedException();
         }
 
-        public Task<List<Domain.Messages.Message>> GetAllAsync()
+        public async Task<List<Domain.Messages.Message>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Messages.ToListAsync();
         }
 
         public Task CreateAsync(Domain.Messages.Message entity)

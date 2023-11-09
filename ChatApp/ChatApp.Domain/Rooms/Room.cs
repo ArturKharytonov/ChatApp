@@ -1,9 +1,10 @@
 ﻿using ChatApp.Domain.Messages;
+using ChatApp.Domain.Users;
 using ChatApp.Domain.UsersAndRooms;
 
 namespace ChatApp.Domain.Rooms;
 
-public partial class Room
+public class Room
 {
     public int Id { get; set; }
 

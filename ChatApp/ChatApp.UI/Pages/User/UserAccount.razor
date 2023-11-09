@@ -1,0 +1,35 @@
+﻿@page "/userform"
+@using Microsoft.AspNetCore.Components
+@attribute [Authorize]
+
+<h3>User Account</h3>
+
+<div class="alert alert-heading" role="alert">
+    <p>@Message</p>
+</div>
+
+<form onsubmit="@OnSubmit">
+    <div class="form-group">
+        <label for="avatar">Avatar</label>
+        <input type="file" class="form-control-file" id="avatar"/>
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" class="form-control" id="email" @bind="User.Email" />
+    </div>
+
+    <div class="form-group">
+        <label for="nickname">UserName</label>
+        <input type="text" class="form-control" id="nickname" @bind="User.Username" />
+    </div>
+
+    <div class="form-group">
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Telephone</RadzenText>
+        <RadzenMask Mask="(***) ***-****" CharacterPattern="[0-9]" Placeholder="(000) 000-0000" Name="Phone"
+                    @bind-Value=@User.PhoneNumber Style="width: 100%;" />
+    </div>
+    
+    <button type="button" class="btn btn-secondary" @onclick="OnInitialized">Reset</button>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

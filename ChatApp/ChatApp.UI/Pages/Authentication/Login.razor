@@ -1,0 +1,22 @@
+﻿@page "/login"
+
+@if (_showErrors)
+{
+    <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter">
+        @Error
+    </RadzenAlert>
+}
+
+<RadzenStack Gap="0" Class="rz-my-12 rz-mx-auto rz-border-radius-6 rz-shadow-10" Style="width: 100%; max-width: 400px; overflow: hidden;">
+    <RadzenCard Class="rz-shadow-0 rz-border-radius-0 rz-background-color-info rz-p-12" style="text-align: center;">
+        <RadzenText TextStyle="TextStyle.DisplayH3" TagName="TagName.H2" Class="rz-color-white rz-mb-0">Login</RadzenText>
+    </RadzenCard>
+
+    <RadzenCard Class="rz-shadow-0 rz-p-12">
+        <RadzenTemplateForm Data="@(_loginModel)">
+            <RadzenLogin AllowRegister="true" AllowResetPassword="false"
+                         Login="SubmitForm"
+                         Register="OnRegister" />
+        </RadzenTemplateForm>
+    </RadzenCard>
+</RadzenStack>

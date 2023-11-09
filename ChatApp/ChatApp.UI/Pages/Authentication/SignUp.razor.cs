@@ -1,33 +1,34 @@
 ﻿using ChatApp.Application.AuthenticationService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace ChatApp.UI.Pages
+namespace ChatApp.UI.Pages.Authentication
 {
-    public partial class Login
+    public partial class SignUp
     {
         [Inject]
         protected IAuthenticationService _authenticationService { get; set; }
         [Inject]
         private NavigationManager _navigationManager { get; set; }
 
-        private readonly LoginModelDto _loginModel = new();
+        private readonly RegisterModelDto _registerModel = new();
 
         private bool _showErrors;
-        private string Error = "";
+
+        private IEnumerable<string>? _errors;
+
         private async Task SubmitForm()
         {
             _showErrors = false;
-            var result = await _authenticationService.LoginAsync(_loginModel);
 
-            if (result.Success)
+            var result = await _authenticationService.RegisterAsync(_registerModel);
+            if (result.Successful)
             {
-                _navigationManager.NavigateTo("/");
+                _navigationManager.NavigateTo("/login");
             }
             else
             {
-                Error = result.Error;
+                _errors = result.Errors;
                 _showErrors = true;
             }
         }

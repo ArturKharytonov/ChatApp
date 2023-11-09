@@ -2,6 +2,9 @@
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.Users;
 using ChatApp.WebAPI.Services.JwtHandler.Interfaces;
+using ChatApp.WebAPI.Services.UserContext.Interfaces;
+using ChatApp.WebAPI.Services.UserService;
+using ChatApp.WebAPI.Services.UserService.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,24 +17,44 @@ namespace ChatApp.WebAPI.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly IJwtService _jwtService;
-        public AuthenticationController(UserManager<User> userManager, IJwtService jwtService)
+        private readonly IUserContext _userContext;
+        private readonly IUserService _userService;
+        public AuthenticationController(UserManager<User> userManager, IJwtService jwtService, IUserContext userContext, IUserService userService)
         {
             _userManager = userManager;
             _jwtService = jwtService;
+            _userContext = userContext;
+            _userService = userService;
+        }
+
+        [HttpPost("change_password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordDto changePassword)
+        {
+            var userIdClaim = _userContext.GetUserId();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return BadRequest(new ChangePasswordResponseDto { Success = false, Error = "Unable to retrieve user id from token." });
+
+            if (await _userService.ChangePasswordAsync(userIdClaim, changePassword.NewPassword, changePassword.CurrentPassword))
+                return Ok(new ChangePasswordResponseDto { Success = true });
+
+            return BadRequest(new ChangePasswordResponseDto { Success = false, Error = "Wrong current password" });
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> LoginAsync([FromBody] LoginModelDto login)
         {
             var user = await _userManager.FindByNameAsync(login.UserName);
             if (user != null && await _userManager.CheckPasswordAsync(user, login.Password))
             {
-                return Ok(new LoginResponseDto { Success = true, Token = _jwtService.GetToken(login.UserName) });
+                return Ok(new LoginResponseDto { Success = true, Token = _jwtService.GetToken(user.Id, login.UserName) });
             }
             return BadRequest(new LoginResponseDto {Success = false, Error = "UserName or password is wrong"});
         }
         
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterModelDto model)
         {
             var newUser = new User { UserName = model.Username, Email = model.Email };
@@ -42,14 +65,6 @@ namespace ChatApp.WebAPI.Controllers
             
             var errors = result.Errors.Select(x => x.Description);
             return BadRequest(new RegisterResponseDto { Successful = false, Errors = errors });
-        }
-
-
-        [HttpPost("test")]
-        [Authorize(AuthenticationSchemes = "Bearer")]
-        public IActionResult Test([FromBody] LoginModelDto model)
-        {
-            return Ok(new LoginResponseDto{Success = true});
         }
     }
 }

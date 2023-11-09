@@ -15,12 +15,13 @@ namespace ChatApp.WebAPI.Services.JwtHandler
             _configuration = configuration;
         }
 
-        public string GetToken(string username)
+        public string GetToken(int id, string username)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var claims = new List<Claim>
             {
-                new(ClaimTypes.NameIdentifier, username)
+                new(ClaimTypes.NameIdentifier, id.ToString()),
+                new(ClaimTypes.Name, username)
             };
             var now = DateTime.UtcNow;
             var jwtToken = new JwtSecurityToken(
@@ -28,7 +29,7 @@ namespace ChatApp.WebAPI.Services.JwtHandler
                 audience: _configuration["Jwt:Audience"],
                 notBefore: now,
                 claims: claims,
-                expires: now.Add(TimeSpan.FromMinutes(1)),
+                expires: now.Add(TimeSpan.FromMinutes(45)),
                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
             );
 

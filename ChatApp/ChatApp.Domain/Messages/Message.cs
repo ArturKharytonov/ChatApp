@@ -3,13 +3,13 @@ using ChatApp.Domain.Users;
 
 namespace ChatApp.Domain.Messages;
 
-public partial class Message
+public class Message
 {
     public int Id { get; set; }
 
     public string Content { get; set; } = null!;
 
-    public byte[] SentAt { get; set; } = null!;
+    public DateTime SentAt { get; set; }
 
     public int RoomId { get; set; }
 
