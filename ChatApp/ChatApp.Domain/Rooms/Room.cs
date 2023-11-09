@@ -1,10 +1,11 @@
-﻿using ChatApp.Domain.Messages;
+﻿using ChatApp.Domain.Common;
+using ChatApp.Domain.Messages;
 using ChatApp.Domain.Users;
 using ChatApp.Domain.UsersAndRooms;
 
 namespace ChatApp.Domain.Rooms;
 
-public class Room
+public class Room : IDbEntity<int>
 {
     public int Id { get; set; }
 
@@ -12,5 +13,5 @@ public class Room
 
     public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 
-    public virtual ICollection<UsersAndRoom> UsersAndRooms { get; set; } = new List<UsersAndRoom>();
+    public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

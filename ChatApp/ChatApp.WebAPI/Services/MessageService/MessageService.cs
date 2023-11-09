@@ -29,20 +29,25 @@ namespace ChatApp.WebAPI.Services.MessageService
 
         public async Task<GridModelResponse<MessageDto>> GetMessagePageAsync(GridModelDto<MessageColumnsSorting> data)
         {
-            var list = await _unitOfWork.GetRepository<Message>()!.GetAllAsync();
-            var messageTasks = list.Select(async x => new MessageDto
+            var list = await _unitOfWork.GetRepository<Message, int>()!.GetAllAsQueryableAsync();
+
+            var taskMessages = await Task.WhenAll(list.Select(async x =>
             {
-                Id = x.Id,
-                Content = x.Content,
-                SentAt = x.SentAt,
-                SenderUsername = (await _userManager.FindByIdAsync(x.SenderId.ToString())).UserName,
-                RoomName = (await _unitOfWork.GetRepository<Room>().GetByIdAsync(x.RoomId)).Name
-            });
+                var sender = await _userManager.FindByIdAsync(x.SenderId.ToString());
+                var room = await _unitOfWork.GetRepository<Room, int>()!.GetByIdAsync(x.RoomId);
 
-            var messagesList = await Task.WhenAll(messageTasks);
+                return new MessageDto
+                {
+                    Id = x.Id,
+                    Content = x.Content,
+                    SentAt = x.SentAt,
+                    SenderUsername = sender.UserName,
+                    RoomName = room.Name
+                };
+            }));
 
+            var messages = taskMessages.AsQueryable();
 
-            var messages = messagesList.AsQueryable();
             if (!string.IsNullOrEmpty(data.Data))
                 messages = messages.Where(_queryBuilder.SearchQuery(data.Data, Enum.GetNames(data.Column.GetType())));
 
@@ -54,7 +59,6 @@ namespace ChatApp.WebAPI.Services.MessageService
                     .Skip(data.PageNumber * _pageSize)
                     .Take(_pageSize)
                     .ToList());
-
 
             var totalCount = messages.Count();
             return new GridModelResponse<MessageDto>

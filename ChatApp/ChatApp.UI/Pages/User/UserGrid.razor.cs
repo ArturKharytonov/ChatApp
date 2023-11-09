@@ -1,11 +1,11 @@
 ﻿using ChatApp.Application.UserApplicationService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Domain.DTOs.UserDto;
 using Microsoft.AspNetCore.Components;
 using Radzen;
-using ChatApp.Domain.Enums;
 using ChatApp.UI.Pages.Common.ComponentHelpers;
+using ChatApp.Domain.DTOs.UserDto;
+using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.Enums;
 
 namespace ChatApp.UI.Pages.User
 {

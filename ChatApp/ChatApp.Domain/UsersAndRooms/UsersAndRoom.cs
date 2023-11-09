@@ -1,9 +1,10 @@
-﻿using ChatApp.Domain.Rooms;
+﻿using ChatApp.Domain.Common;
+using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
 
 namespace ChatApp.Domain.UsersAndRooms;
 
-public class UsersAndRoom
+public class UsersAndRoom : IDbEntity<int>
 {
     public int Id { get; set; }
 

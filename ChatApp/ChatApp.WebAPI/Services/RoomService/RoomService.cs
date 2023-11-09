@@ -26,17 +26,16 @@ namespace ChatApp.WebAPI.Services.RoomService
 
         public async Task<GridModelResponse<RoomDto>> GetRoomsPageAsync(GridModelDto<RoomColumnsSorting> data)
         {
-            var list = await _unitOfWork.GetRepository<Room>()!.GetAllAsync();
+            var list = await _unitOfWork.GetRepository<Room, int>()!.GetAllAsQueryableAsync();
 
-            var roomsTasks = list.Select(async x => new RoomDto
+            var rooms = list.Select(x => new RoomDto
             {
                 Id = x.Id,
                 Name = x.Name,
-                ParticipantsNumber = x.UsersAndRooms.Count,
+                ParticipantsNumber = x.Users.Count,
                 MessagesNumber = x.Messages.Count
             });
-            var roomsList = await Task.WhenAll(roomsTasks);
-            var rooms = roomsList.AsQueryable();
+
 
             if (!string.IsNullOrEmpty(data.Data))
                 rooms = rooms.Where(_queryBuilder.SearchQuery(data.Data, Enum.GetNames(data.Column.GetType())));

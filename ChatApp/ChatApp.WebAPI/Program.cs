@@ -1,7 +1,5 @@
 using System.Security.Claims;
 using System.Text;
-using ChatApp.Domain.DTOs.MessageDto;
-using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Mapping;
 using ChatApp.Domain.Messages;
 using ChatApp.Domain.Rooms;
@@ -26,6 +24,8 @@ using ChatApp.Persistence.UnitOfWork.Interfaces;
 using ChatApp.Persistence.UnitOfWork;
 using ChatApp.WebAPI.Services.MessageService;
 using ChatApp.WebAPI.Services.MessageService.Interfaces;
+using ChatApp.Domain.DTOs.MessageDto;
+using ChatApp.Domain.DTOs.RoomDto;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ChatDbContext>(options =>

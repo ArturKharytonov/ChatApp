@@ -1,12 +1,12 @@
 ﻿namespace ChatApp.Persistence.Common.Interfaces
 {
-    public interface IRepository<T> 
-        where T : class
+    public interface IRepository<TEntity, in TId>
     {
-        Task<T?> GetByIdAsync(int id);
-        Task<List<T>> GetAllAsync();
-        Task CreateAsync(T entity);
-        Task UpdateAsync(T entity);
-        void Delete(int id);
+        Task<TEntity?> GetByIdAsync(TId id);
+        Task<IEnumerable<TEntity>> GetAllAsync();
+        Task CreateAsync(TEntity entity);
+        void Update(TEntity entity);
+        Task DeleteAsync(TId id);
+        Task<IQueryable<TEntity>> GetAllAsQueryableAsync();
     }
 }
