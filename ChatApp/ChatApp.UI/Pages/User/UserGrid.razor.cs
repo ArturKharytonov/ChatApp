@@ -5,25 +5,29 @@ using ChatApp.Domain.DTOs.UserDto;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using ChatApp.Domain.Enums;
+using ChatApp.UI.Pages.Common.ComponentHelpers;
 
 namespace ChatApp.UI.Pages.User
 {
-    public partial class UserGrid : IBaseGridComponent<UserDto, UserColumnsSorting>
+    public partial class UserGrid : ComponentBase, IBaseGridComponent<UserDto>,
+        ISortComponent<UserColumnsSorting>, ISearchComponent
     {
-        private IEnumerable<UserDto> Items;
-        private int Count;
-        private string? Input;
-        private int CurrentPage;
-        private UserColumnsSorting SortFieldValue { get; set; }
-        private bool Asc { get; set; }
-        private bool Sorting { get; set; }
-
-
-        public IEnumerable<UserColumnsSorting> SortingFieldsDropDown { get; set; }
-
-        [Inject] private IUserApplicationService UserApplicationService { get; set; }
+        //base
+        public IEnumerable<UserDto> Items { get; set; }
+        public int Count { get; set; }
+        public int CurrentPage { get; set; }
         [Inject] public NavigationManager NavigationManager { get; set; }
 
+        //search
+        public string? Input { get; set; }
+
+        //sorting
+        public bool Asc { get; set; }
+        public bool Sorting { get; set; }
+        public UserColumnsSorting SortFieldValue { get; set; }
+        public IEnumerable<UserColumnsSorting> SortingFieldsDropDown { get; set; }
+
+        [Inject] public IUserApplicationService UserApplicationService { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -93,9 +97,10 @@ namespace ChatApp.UI.Pages.User
             var queryParameters = System.Web.HttpUtility.ParseQueryString(queryString);
             if (queryParameters.Count <= 0) return;
 
-            int.TryParse(queryParameters["pageNumber"], out CurrentPage);
-            if (CurrentPage > 0)
-                CurrentPage -= 1;
+
+            int.TryParse(queryParameters["pageNumber"], out var value);
+            if (value > 0)
+                CurrentPage = value - 1;
 
             Input = queryParameters["data"];
 

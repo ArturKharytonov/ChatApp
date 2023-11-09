@@ -4,6 +4,8 @@ using ChatApp.Application.AuthenticationService.Interfaces;
 using ChatApp.Application.CustomAuthenticationState;
 using ChatApp.Application.HttpClientPWAService;
 using ChatApp.Application.HttpClientPWAService.Interfaces;
+using ChatApp.Application.MessageApplicationService;
+using ChatApp.Application.MessageApplicationService.Interfaces;
 using ChatApp.Application.RoomApplicationService;
 using ChatApp.Application.RoomApplicationService.Interfaces;
 using ChatApp.Application.UserApplicationService;
@@ -25,6 +27,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 
 builder.Services.AddRadzenComponents();
 
+builder.Services.AddScoped<IMessageApplicationService, MessageApplicationService>();
 builder.Services.AddScoped<IRoomApplicationService, RoomApplicationService>();
 builder.Services.AddScoped<IUserApplicationService, UserApplicationService>();
 builder.Services.AddScoped<IHttpClientPwa, HttpClientPwa>();

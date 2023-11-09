@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using ChatApp.WebAPI.Services.QueryBuilder.Interfaces;
+using Radzen;
 
 namespace ChatApp.WebAPI.Services.QueryBuilder
 {
@@ -13,16 +14,23 @@ namespace ChatApp.WebAPI.Services.QueryBuilder
 
             foreach (var name in namesOfProperties)
             {
-                var property = Expression.Property(parameter, name);
                 var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
 
-                var containsCall = Expression.Call(property, containsMethod, Expression.Constant(searchValue));
+                var property = Expression.Property(parameter, name);
+                var propertyAsObject = Expression.Convert(property, typeof(object));
+                var nullCheck = Expression.ReferenceEqual(propertyAsObject, Expression.Constant(null));
+
+                Expression stringified = property.Type == typeof(string)
+                    ? property
+                    : Expression.Call(property, property.Type.GetMethod("ToString", Type.EmptyTypes));
+
+                var containsCall = Expression.Call(stringified, containsMethod, Expression.Constant(searchValue));
+                var conditionalExpression = Expression.Condition(nullCheck, Expression.Constant(false), containsCall);
 
                 if (expression == null)
-                    expression = containsCall;
-                
+                    expression = conditionalExpression; //containsCall
                 else
-                    expression = Expression.OrElse(expression, containsCall);
+                    expression = Expression.OrElse(expression, conditionalExpression); //containsCall
             }
             return Expression.Lambda<Func<TEntity, bool>>(expression!, parameter);
         }

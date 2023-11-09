@@ -59,7 +59,7 @@ namespace ChatApp.WebAPI.Services.UserService
             return result.Succeeded;
         }
 
-        public GridModelResponse<UserDto> GetUsersPage(GridModelDto<UserColumnsSorting> data)
+        public async Task<GridModelResponse<UserDto>> GetUsersPageAsync(GridModelDto<UserColumnsSorting> data)
         {
             var users = _userManager.Users.AsQueryable();
 
@@ -82,11 +82,11 @@ namespace ChatApp.WebAPI.Services.UserService
 
             var totalCount = users.Count();
 
-            return new GridModelResponse<UserDto>
+            return await Task.FromResult(new GridModelResponse<UserDto>
             {
                 Items = userInformation,
                 TotalCount = totalCount
-            };
+            });
         }
 
         private async Task<bool> DoesUsernameExistAsync(string username)

@@ -1,10 +1,10 @@
 ﻿using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.DTOs.RoomDto;
-using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Domain.Rooms;
-using ChatApp.Domain.Users;
+using ChatApp.Domain.UsersAndRooms;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
 using ChatApp.WebAPI.Services.QueryBuilder.Interfaces;
 using ChatApp.WebAPI.Services.RoomService.Interfaces;
@@ -15,18 +15,28 @@ namespace ChatApp.WebAPI.Services.RoomService
     public class RoomService : IRoomService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IQueryBuilder<Room> _queryBuilder;
+        private readonly IQueryBuilder<RoomDto> _queryBuilder;
         private const int _pageSize = 5;
 
-        public RoomService(IUnitOfWork unitOfWork, IQueryBuilder<Room> queryBuilder)
+        public RoomService(IQueryBuilder<RoomDto> queryBuilder, IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork;
             _queryBuilder = queryBuilder;
+            _unitOfWork = unitOfWork;
         }
 
-        public GridModelResponse<RoomDto> GetRoomsPage(GridModelDto<RoomColumnsSorting> data)
+        public async Task<GridModelResponse<RoomDto>> GetRoomsPageAsync(GridModelDto<RoomColumnsSorting> data)
         {
-            var rooms = new List<Room>().AsQueryable(); //_unitOfWork.GetRepository<Room>(); // i need to get all users
+            var list = await _unitOfWork.GetRepository<Room>()!.GetAllAsync();
+
+            var roomsTasks = list.Select(async x => new RoomDto
+            {
+                Id = x.Id,
+                Name = x.Name,
+                ParticipantsNumber = x.UsersAndRooms.Count,
+                MessagesNumber = x.Messages.Count
+            });
+            var roomsList = await Task.WhenAll(roomsTasks);
+            var rooms = roomsList.AsQueryable();
 
             if (!string.IsNullOrEmpty(data.Data))
                 rooms = rooms.Where(_queryBuilder.SearchQuery(data.Data, Enum.GetNames(data.Column.GetType())));
@@ -37,19 +47,15 @@ namespace ChatApp.WebAPI.Services.RoomService
             var roomInformation = rooms
                 .Skip(data.PageNumber * _pageSize)
                 .Take(_pageSize)
-                .Select(room => new RoomDto
-                {
-                    Name = room.Name,
-                }).ToList();
+                .ToList();
 
             var totalCount = rooms.Count();
 
-
-            return new GridModelResponse<RoomDto>
+            return await Task.FromResult(new GridModelResponse<RoomDto>
             {
                 Items = roomInformation,
                 TotalCount = totalCount
-            };
+            });
         }
     }
 }

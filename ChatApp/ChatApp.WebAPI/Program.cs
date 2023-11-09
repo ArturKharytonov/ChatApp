@@ -1,6 +1,10 @@
 using System.Security.Claims;
 using System.Text;
+using ChatApp.Domain.DTOs.MessageDto;
+using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Mapping;
+using ChatApp.Domain.Messages;
+using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
 using ChatApp.Persistence.Context;
 using ChatApp.WebAPI.Services.JwtHandler;
@@ -18,6 +22,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using IUserContext = ChatApp.WebAPI.Services.UserContext.Interfaces.IUserContext;
 using UserContext = ChatApp.WebAPI.Services.UserContext.UserContext;
+using ChatApp.Persistence.UnitOfWork.Interfaces;
+using ChatApp.Persistence.UnitOfWork;
+using ChatApp.WebAPI.Services.MessageService;
+using ChatApp.WebAPI.Services.MessageService.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ChatDbContext>(options =>
@@ -64,12 +72,19 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddTransient<ClaimsPrincipal>(s =>
     s.GetService<IHttpContextAccessor>().HttpContext.User);
 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserContext, UserContext>();
+
+builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
+
 builder.Services.AddScoped<IQueryBuilder<User>, QueryBuilder<User>>();
+builder.Services.AddScoped<IQueryBuilder<RoomDto>, QueryBuilder<RoomDto>>();
+builder.Services.AddScoped<IQueryBuilder<MessageDto>, QueryBuilder<MessageDto>>();
+
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 

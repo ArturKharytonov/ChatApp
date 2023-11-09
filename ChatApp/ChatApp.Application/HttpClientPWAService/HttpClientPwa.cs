@@ -16,6 +16,8 @@ namespace ChatApp.Application.HttpClientPWAService
         public const string UpdateUserCredentials = "https://localhost:7223/api/user/credentials";
         public const string GetUsersBySearch = "https://localhost:7223/api/user/page?";
         public const string GetRoomsBySearch = "https://localhost:7223/api/rooms/page?";
+        public const string GetMessagesBySearch = "https://localhost:7223/api/message/page?";
+
 
         private readonly ILocalStorageService _localStorageService;
         public HttpClientPwa(ILocalStorageService localStorageService)

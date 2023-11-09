@@ -7,6 +7,6 @@ namespace ChatApp.WebAPI.Services.RoomService.Interfaces
 {
     public interface IRoomService
     {
-        GridModelResponse<RoomDto> GetRoomsPage(GridModelDto<RoomColumnsSorting> data);
+        Task<GridModelResponse<RoomDto>> GetRoomsPageAsync(GridModelDto<RoomColumnsSorting> data);
     }
 }

@@ -20,9 +20,9 @@ namespace ChatApp.WebAPI.Controllers
         }
 
         [HttpGet("page")]
-        public IActionResult GetRooms([FromQuery] GridModelDto<RoomColumnsSorting> model)
+        public async Task<IActionResult> GetRooms([FromQuery] GridModelDto<RoomColumnsSorting> model)
         {
-            return Ok(_roomService.GetRoomsPage(model));
+            return Ok(await _roomService.GetRoomsPageAsync(model));
         }
     }
 }

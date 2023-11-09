@@ -41,9 +41,9 @@ namespace ChatApp.WebAPI.Controllers
         }
 
         [HttpGet("page")]
-        public IActionResult GetUsersPage([FromQuery] GridModelDto<UserColumnsSorting> userInput)
+        public async Task<IActionResult> GetUsersPage([FromQuery] GridModelDto<UserColumnsSorting> userInput)
         {
-            var users = _userService.GetUsersPage(userInput);
+            var users = await _userService.GetUsersPageAsync(userInput);
 
             return Ok(users);
         }

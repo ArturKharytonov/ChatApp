@@ -1,19 +1,22 @@
-﻿using ChatApp.Application.RoomApplicationService.Interfaces;
-using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Application.MessageApplicationService.Interfaces;
+using ChatApp.Application.RoomApplicationService;
+using ChatApp.Application.RoomApplicationService.Interfaces;
 using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http;
+using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
 using ChatApp.UI.Pages.Common.ComponentHelpers;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 
-namespace ChatApp.UI.Pages.Room
+namespace ChatApp.UI.Pages.Message
 {
-    public partial class RoomGrid : ComponentBase, IBaseGridComponent<RoomDto>,
-        ISortComponent<RoomColumnsSorting>, ISearchComponent
+    public partial class MessageGrid : ComponentBase, IBaseGridComponent<MessageDto>,
+    ISortComponent<MessageColumnsSorting>, ISearchComponent
     {
         //base
-        public IEnumerable<RoomDto> Items { get; set; }
+        public IEnumerable<MessageDto> Items { get; set; }
         public int Count { get; set; }
         public int CurrentPage { get; set; }
         [Inject] public NavigationManager NavigationManager { get; set; }
@@ -24,16 +27,17 @@ namespace ChatApp.UI.Pages.Room
         //sorting
         public bool Asc { get; set; }
         public bool Sorting { get; set; }
-        public RoomColumnsSorting SortFieldValue { get; set; }
-        public IEnumerable<RoomColumnsSorting> SortingFieldsDropDown { get; set; }
+        public MessageColumnsSorting SortFieldValue { get; set; }
+        public IEnumerable<MessageColumnsSorting> SortingFieldsDropDown { get; set; }
 
-        [Inject] private IRoomApplicationService RoomApplicationService { get; set; }
+        [Inject] public IMessageApplicationService MessageApplicationService { get; set; }
+
 
         protected override async Task OnInitializedAsync()
         {
             ReadFromUrl();
 
-            SortingFieldsDropDown = Enum.GetValues(typeof(RoomColumnsSorting)).Cast<RoomColumnsSorting>().ToList();
+            SortingFieldsDropDown = Enum.GetValues(typeof(MessageColumnsSorting)).Cast<MessageColumnsSorting>().ToList();
 
             var response = await GetItems(CurrentPage);
 
@@ -51,11 +55,11 @@ namespace ChatApp.UI.Pages.Room
             }
         }
 
-        public async Task<GridModelResponse<RoomDto>?> GetItems(int pageNumber)
+        public async Task<GridModelResponse<MessageDto>?> GetItems(int pageNumber)
         {
-            NavigationManager.NavigateTo($"/roomgrid?data={Input}&pageNumber={CurrentPage + 1}&column={SortFieldValue}&asc={Asc}&sorting={Sorting}");
+            NavigationManager.NavigateTo($"/messagegrid?data={Input}&pageNumber={CurrentPage + 1}&column={SortFieldValue}&asc={Asc}&sorting={Sorting}");
 
-            var model = new GridModelDto<RoomColumnsSorting>
+            var model = new GridModelDto<MessageColumnsSorting>
             {
                 PageNumber = pageNumber,
                 Data = Input,
@@ -68,7 +72,7 @@ namespace ChatApp.UI.Pages.Room
                 model.Asc = Asc;
             }
 
-            return await RoomApplicationService.GetRoomsAsync(model);
+            return await MessageApplicationService.GetMessagesAsync(model);
         }
 
         public async Task PageChanged(PagerEventArgs args)
@@ -103,7 +107,7 @@ namespace ChatApp.UI.Pages.Room
 
             Input = queryParameters["data"];
 
-            Enum.TryParse(queryParameters["column"], out RoomColumnsSorting read);
+            Enum.TryParse(queryParameters["column"], out MessageColumnsSorting read);
             SortFieldValue = read;
 
             bool.TryParse(queryParameters["asc"], out var asc);

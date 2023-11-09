@@ -11,6 +11,6 @@ namespace ChatApp.WebAPI.Services.UserService.Interfaces
         Task<bool> ChangePasswordAsync(string id, string newPassword, string currentPassword);
         Task<bool> UpdateUserAsync(UserDto user);
         Task<User?> GetUserAsync(string id);
-        GridModelResponse<UserDto> GetUsersPage(GridModelDto<UserColumnsSorting> data);
+        Task<GridModelResponse<UserDto>> GetUsersPageAsync(GridModelDto<UserColumnsSorting> data);
     }
 }

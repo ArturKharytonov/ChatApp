@@ -1,7 +1,7 @@
-﻿@page "/roomgrid"
-@using ChatApp.Domain.DTOs.UserDto
+﻿@page "/messagegrid"
 @using ChatApp.Domain.Enums
 @using ChatApp.Domain.DTOs.RoomDto
+@using ChatApp.Domain.DTOs.MessageDto
 
 @attribute [Authorize]
 
@@ -24,15 +24,15 @@
             <RadzenSelectBarItem Text="Descending" Value="false" />
         </Items>
     </RadzenSelectBar>
-    <RadzenDropDown Placeholder="Sort Column" Disabled="!Sorting" @bind-Value=@SortFieldValue TValue="RoomColumnsSorting" Data="@SortingFieldsDropDown" Change="async () => await OnSortChangeAsync()" />
+    <RadzenDropDown Placeholder="Sort Column" Disabled="!Sorting" @bind-Value=@SortFieldValue TValue="MessageColumnsSorting" Data="@SortingFieldsDropDown" Change="async () => await OnSortChangeAsync()" />
 </div>
 
 <RadzenDataGrid FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                Data="@Items" TItem="RoomDto" ColumnWidth="150px">
+                Data="@Items" TItem="MessageDto" ColumnWidth="150px">
     <Columns>
-        <RadzenDataGridColumn TItem="RoomDto" Property="Name" Title="Name"></RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="RoomDto" Property="ParticipantsNumber" Title="Participants Number"></RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="RoomDto" Property="MessagesNumber" Title="Messages Number"></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="MessageDto" Property="SentAt" Title="Was sent"></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="MessageDto" Property="SenderUsername" Title="Sender username"></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="MessageDto" Property="RoomName" Title="Room name"></RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
