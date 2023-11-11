@@ -1,7 +1,6 @@
 ﻿using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.MessageDto;
-using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Domain.Messages;
 using ChatApp.Domain.Rooms;
@@ -9,7 +8,6 @@ using ChatApp.Domain.Users;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
 using ChatApp.WebAPI.Services.MessageService.Interfaces;
 using ChatApp.WebAPI.Services.QueryBuilder.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 namespace ChatApp.WebAPI.Services.MessageService
@@ -27,26 +25,60 @@ namespace ChatApp.WebAPI.Services.MessageService
             _userManager = userManager;
         }
 
+        public async Task<IEnumerable<MessageDto>> GetMessagesFromChat(string roomId)
+        {
+            var room = await _unitOfWork.GetRepository<Room, int>()!.GetByIdAsync(int.Parse(roomId));
+
+            // в room додаються меседжі тільки тоді як стягую їх всіх
+            //var messages = await _unitOfWork.GetRepository<Message, int>()!.GetAllAsync();
+            // this line adds senders in messages
+            //var users = await _unitOfWork.GetRepository<User, int>()!.GetAllAsync();
+
+            return room.Messages.Select(x => new MessageDto
+            {
+                SenderUsername = x.Sender.UserName,
+                Content = x.Content,
+                SentAt = x.SentAt,
+                RoomName = x.Room.Name
+            });
+        }
+
+        public async Task<MessageDto> AddMessageAsync(AddMessageDto addMessageDto)
+        {
+            var user = await _userManager.FindByIdAsync(addMessageDto.UserId);
+            var room = await _unitOfWork.GetRepository<Room, int>()!.GetByIdAsync(addMessageDto.RoomId);
+
+            var message = new Message
+            {
+                Content = addMessageDto.Content,
+                SentAt = addMessageDto.SentAt,
+                RoomId = room.Id,
+                SenderId = user.Id
+            };
+
+            await _unitOfWork.GetRepository<Message, int>()!.CreateAsync(message);
+            await _unitOfWork.SaveAsync();
+
+            return new MessageDto
+            {
+                Content = addMessageDto.Content,
+                SentAt = addMessageDto.SentAt,
+                SenderUsername = user.UserName,
+                RoomName = room.Name
+            };
+        }
         public async Task<GridModelResponse<MessageDto>> GetMessagePageAsync(GridModelDto<MessageColumnsSorting> data)
         {
             var list = await _unitOfWork.GetRepository<Message, int>()!.GetAllAsQueryableAsync();
 
-            var taskMessages = await Task.WhenAll(list.Select(async x =>
+            var messages = list.Select(x => new MessageDto
             {
-                var sender = await _userManager.FindByIdAsync(x.SenderId.ToString());
-                var room = await _unitOfWork.GetRepository<Room, int>()!.GetByIdAsync(x.RoomId);
-
-                return new MessageDto
-                {
-                    Id = x.Id,
-                    Content = x.Content,
-                    SentAt = x.SentAt,
-                    SenderUsername = sender.UserName,
-                    RoomName = room.Name
-                };
-            }));
-
-            var messages = taskMessages.AsQueryable();
+                Id = x.Id,
+                Content = x.Content,
+                SentAt = x.SentAt,
+                SenderUsername = _userManager.FindByIdAsync(x.SenderId.ToString()).Result.UserName,
+                RoomName = _unitOfWork.GetRepository<Room, int>().GetByIdAsync(x.RoomId).Result.Name
+            }).AsQueryable();
 
             if (!string.IsNullOrEmpty(data.Data))
                 messages = messages.Where(_queryBuilder.SearchQuery(data.Data, Enum.GetNames(data.Column.GetType())));

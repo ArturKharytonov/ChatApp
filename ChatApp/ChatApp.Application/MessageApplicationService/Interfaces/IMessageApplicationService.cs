@@ -13,6 +13,8 @@ namespace ChatApp.Application.MessageApplicationService.Interfaces
 {
     public interface IMessageApplicationService
     {
+        Task<List<MessageDto>> GetMessagesAsync(string roomId);
+        Task<MessageDto> AddMessageAsync(AddMessageDto message);
         Task<GridModelResponse<MessageDto>> GetMessagesAsync(GridModelDto<MessageColumnsSorting> gridModelDto);
     }
 }

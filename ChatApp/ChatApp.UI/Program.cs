@@ -32,6 +32,8 @@ builder.Services.AddScoped<IRoomApplicationService, RoomApplicationService>();
 builder.Services.AddScoped<IUserApplicationService, UserApplicationService>();
 builder.Services.AddScoped<IHttpClientPwa, HttpClientPwa>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
+
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 await builder.Build().RunAsync();

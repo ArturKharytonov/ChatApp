@@ -15,8 +15,6 @@ namespace ChatApp.Persistence.Configurations
         public void Configure(EntityTypeBuilder<User> builder)
         {
             builder.HasKey(e => e.Id).HasName("PK_AspNetUsers1");
-            builder.HasMany(x => x.Rooms)
-                .WithMany(x => x.Users);
         }
     }
 }

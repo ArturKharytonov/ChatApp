@@ -28,7 +28,6 @@ namespace ChatApp.Application.UserApplicationService
             var result = await _clientPwa.PostAsync<UserDto, UpdateUserCredentialResponse>(HttpClientPwa.UpdateUserCredentials, user);
             return result.Result;
         }
-
         public async Task<GridModelResponse<UserDto>> GetUsersAsync(GridModelDto<UserColumnsSorting> gridModelDto)
         {
             var queryString = GenerateQueryString(gridModelDto);
@@ -37,6 +36,7 @@ namespace ChatApp.Application.UserApplicationService
 
             return result.Result;
         }
+
         private static string GenerateQueryString(GridModelDto<UserColumnsSorting> gridModelDto)
         { 
 

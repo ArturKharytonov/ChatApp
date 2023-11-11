@@ -6,6 +6,8 @@ using ChatApp.UI.Pages.Common.ComponentHelpers;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.Enums;
+using ChatApp.Application.AuthenticationService.Interfaces;
+using ChatApp.Domain.DTOs.RoomDto;
 
 namespace ChatApp.UI.Pages.User
 {
@@ -28,28 +30,14 @@ namespace ChatApp.UI.Pages.User
         public IEnumerable<UserColumnsSorting> SortingFieldsDropDown { get; set; }
 
         [Inject] public IUserApplicationService UserApplicationService { get; set; }
-
+        [Inject] protected IAuthenticationService _authenticationService { get; set; }
         protected override async Task OnInitializedAsync()
         {
             ReadFromUrl();
-
             SortingFieldsDropDown = Enum.GetValues(typeof(UserColumnsSorting)).Cast<UserColumnsSorting>().ToList();
-
             var response = await GetItems(CurrentPage);
-
-            if (response == null)
-            {
-                NavigationManager.NavigateTo("/logout");
-
-                StateHasChanged();
-            }
-
-            else
-            {
-
-                Items = response.Items;
-                Count = response.TotalCount;
-            }
+            Items = response.Items;
+            Count = response.TotalCount;
         }
 
         public async Task<GridModelResponse<UserDto>?> GetItems(int pageNumber)

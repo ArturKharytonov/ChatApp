@@ -17,21 +17,18 @@ namespace ChatApp.Application.HttpClientPWAService
         public const string GetUsersBySearch = "https://localhost:7223/api/user/page?";
         public const string GetRoomsBySearch = "https://localhost:7223/api/rooms/page?";
         public const string GetMessagesBySearch = "https://localhost:7223/api/message/page?";
+        public const string AddMessage = "https://localhost:7223/api/message";
+        public const string GetAllMessagesFromChat = "https://localhost:7223/api/message/all/";
 
 
-        private readonly ILocalStorageService _localStorageService;
-        public HttpClientPwa(ILocalStorageService localStorageService)
+        private HttpClient HttpClient { get; set; }
+        public HttpClientPwa(HttpClient httpClient)
         {
-            _localStorageService = localStorageService;
+            HttpClient = httpClient;
         }
-
         public async Task<ApiRequestResult<VResult>> PostAsync<TArgument, VResult>(string requestUrl, TArgument data)
         {
-            using var httpClient = new HttpClient();
-
-            await TryAddJwtTokenAsync(httpClient);
-
-            var result = await httpClient.PostAsJsonAsync(requestUrl, data);
+            var result = await HttpClient.PostAsJsonAsync(requestUrl, data);
 
             return (result.StatusCode.Equals(HttpStatusCode.Unauthorized) && !result.IsSuccessStatusCode)
                 ? new ApiRequestResult<VResult>
@@ -50,11 +47,7 @@ namespace ChatApp.Application.HttpClientPWAService
 
         public async Task<ApiRequestResult<T>> GetAsync<T>(string requestUrl)
         {
-            using var httpClient = new HttpClient();
-
-            await TryAddJwtTokenAsync(httpClient);
-            
-            var response = await httpClient.GetAsync(requestUrl);
+            var response = await HttpClient.GetAsync(requestUrl);
 
             return response.StatusCode.Equals(HttpStatusCode.Unauthorized) && !response.IsSuccessStatusCode
                 ? new ApiRequestResult<T>
@@ -71,12 +64,13 @@ namespace ChatApp.Application.HttpClientPWAService
                 };
         }
 
-        private async Task TryAddJwtTokenAsync(HttpClient client)
+        public void TryAddJwtToken(string token)
         {
-            var token = await _localStorageService.GetItemAsync<string>("token");
-
-            if (!string.IsNullOrWhiteSpace(token))
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
+        public void DeleteJwtToken()
+        {
+            HttpClient.DefaultRequestHeaders.Authorization = null;
         }
     }
 }

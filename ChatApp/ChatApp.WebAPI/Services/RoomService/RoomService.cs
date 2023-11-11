@@ -1,14 +1,11 @@
 ﻿using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Domain.Rooms;
-using ChatApp.Domain.UsersAndRooms;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
 using ChatApp.WebAPI.Services.QueryBuilder.Interfaces;
 using ChatApp.WebAPI.Services.RoomService.Interfaces;
-using Microsoft.AspNetCore.Identity;
 
 namespace ChatApp.WebAPI.Services.RoomService
 {
@@ -35,7 +32,6 @@ namespace ChatApp.WebAPI.Services.RoomService
                 ParticipantsNumber = x.Users.Count,
                 MessagesNumber = x.Messages.Count
             });
-
 
             if (!string.IsNullOrEmpty(data.Data))
                 rooms = rooms.Where(_queryBuilder.SearchQuery(data.Data, Enum.GetNames(data.Column.GetType())));

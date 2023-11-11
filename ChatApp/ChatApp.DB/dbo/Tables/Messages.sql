@@ -5,8 +5,8 @@
     [RoomId]   INT            NOT NULL,
     [SenderId] INT            NOT NULL,
     CONSTRAINT [PK__Messages__3214EC0707BA7D0D] PRIMARY KEY CLUSTERED ([Id] ASC),
-    CONSTRAINT [FK_RoomId_Messages] FOREIGN KEY ([RoomId]) REFERENCES [dbo].[Rooms] ([Id]),
-    CONSTRAINT [FK_SenderId_Messages] FOREIGN KEY ([SenderId]) REFERENCES [dbo].[AspNetUsers] ([Id])
+    CONSTRAINT [FK_RoomId_Messages] FOREIGN KEY ([RoomId]) REFERENCES [dbo].[Rooms]([Id]),
+    CONSTRAINT [FK_SenderId_Messages] FOREIGN KEY ([SenderId]) REFERENCES [dbo].[AspNetUsers]([Id])
 );
 
 

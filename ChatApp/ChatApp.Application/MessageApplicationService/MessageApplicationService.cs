@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
+﻿using System.Web;
 using ChatApp.Application.HttpClientPWAService;
 using ChatApp.Application.HttpClientPWAService.Interfaces;
 using ChatApp.Application.MessageApplicationService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.MessageDto;
-using ChatApp.Domain.DTOs.RoomDto;
+using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
+using ChatApp.Domain.Messages;
 
 namespace ChatApp.Application.MessageApplicationService
 {
@@ -24,6 +20,17 @@ namespace ChatApp.Application.MessageApplicationService
             _clientPwa = httpClientPwa;
         }
 
+        public async Task<List<MessageDto>> GetMessagesAsync(string roomId)
+        {
+            var result = await _clientPwa.GetAsync<List<MessageDto>>(HttpClientPwa.GetAllMessagesFromChat + roomId);
+            return result.Result;
+        }
+
+        public async Task<MessageDto> AddMessageAsync(AddMessageDto message)
+        {
+            var result = await _clientPwa.PostAsync<AddMessageDto, MessageDto>(HttpClientPwa.AddMessage, message);
+            return result.Result;
+        }
 
         public async Task<GridModelResponse<MessageDto>> GetMessagesAsync(GridModelDto<MessageColumnsSorting> gridModelDto)
         {

@@ -23,7 +23,6 @@ namespace ChatApp.Persistence.Common
         {
             return await _context.Set<TEntity>().FindAsync(id);
         }
-
         public async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             return await _context.Set<TEntity>().ToListAsync();
@@ -42,7 +41,6 @@ namespace ChatApp.Persistence.Common
         {
             _context.Set<TEntity>().Update(entity);
         }
-
         public async Task DeleteAsync(TId id)
         {
             await _context.Set<TEntity>()

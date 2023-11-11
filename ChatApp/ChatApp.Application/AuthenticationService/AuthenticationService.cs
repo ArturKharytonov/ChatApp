@@ -6,6 +6,10 @@ using ChatApp.Application.HttpClientPWAService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Principal;
+using System.Text;
 
 namespace ChatApp.Application.AuthenticationService
 {
@@ -43,7 +47,7 @@ namespace ChatApp.Application.AuthenticationService
             {
                 await _localStorageService.SetItemAsync("token", result.Result.Token);
 
-                ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(model.UserName);
+                ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(result.Result.Token, model.UserName);
             }
 
             return result.Result;

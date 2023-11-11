@@ -27,8 +27,8 @@
 </div>
 
 <RadzenDataGrid FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                Data="@Items" TItem="RoomDto" ColumnWidth="150px">
-    <Columns>
+                Data="@Items" TItem="RoomDto" ColumnWidth="150px" RowClick="OnRowClick">
+    <Columns >
         <RadzenDataGridColumn TItem="RoomDto" Property="Name" Title="Name"></RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="RoomDto" Property="ParticipantsNumber" Title="Participants Number"></RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="RoomDto" Property="MessagesNumber" Title="Messages Number"></RadzenDataGridColumn>

@@ -1,0 +1,86 @@
+﻿@page "/chat/{id}"
+@using ChatApp.Domain.DTOs.MessageDto
+@using ChatApp.Domain.DTOs.Http
+@using ChatApp.Application.MessageApplicationService.Interfaces
+@using System.Security.Claims
+<h3>Chat Page</h3>
+
+
+<div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px;
+            max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; background-color: #3F3075; border: 1px solid #ccc;
+            border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
+
+    @if (Messages.Count > 0)
+    {
+        foreach (var message in Messages)
+        {
+            if (message.SenderUsername.Equals(_userName))
+            {
+                <div style="display: flex; flex-direction: column; padding: 5px; border-radius: 10px; margin-bottom: 10px; max-width: 70%; background-color: #877CB0;
+                            align-self: flex-end; border-radius: 5px 35px 5px 35px;">
+                    <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
+                    <p style="color: #fff; margin-left: 10px;">@message.Content</p>
+                    <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-end;">@message.SentAt.ToString("hh:mm tt")</span>
+                </div>
+            }
+            else
+            {
+                <div style="display: flex; flex-direction: column; padding: 2px; margin-bottom: 10px; max-width: 70%; background-color: #605396;
+                            color: #fff; align-self: flex-start; border-radius: 35px 5px 35px 5px;">
+                    <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
+                    <p style="margin-left: 10px;">@message.Content</p>
+                    <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-start;">@message.SentAt.ToString("hh:mm tt")</span>
+                </div>
+            }
+        }
+    }
+</div>
+
+<div class="input" style="height: 15%; display: flex; justify-content: center">
+    <div style="display: flex; align-items: center;">
+        <RadzenTextArea Style="resize: none;" Placeholder="Enter here..." MaxLength="400" @bind-Value="@Input" class="w-100 mb-2" />
+        <RadzenButton Icon="send" Class="btn btn-primary" Click="@OnSendClick" style="margin-left: 8px;" />
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    protected string Input { get; set; }
+    private List<MessageDto> Messages { get; set; } = new List<MessageDto>();
+    [Inject] IMessageApplicationService _messageApplicationService { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private string _userId;
+    private string _userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await authenticationStateTask;
+        _userId = authenticationState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        _userName = authenticationState.User.FindFirst(ClaimTypes.Name)?.Value;
+
+        // get all messages
+        Messages = await _messageApplicationService.GetMessagesAsync(Id);
+    }
+
+    public async Task OnSendClick()
+    {
+        if (!string.IsNullOrEmpty(Input))
+        {
+            var addMessageDto = new AddMessageDto
+            {
+                SentAt = DateTime.UtcNow,
+                Content = Input,
+                UserId = _userId,
+                RoomId = int.Parse(Id)
+            };
+
+            var message = await _messageApplicationService.AddMessageAsync(addMessageDto);
+
+            Messages.Add(message);
+
+            Input = string.Empty;
+        }
+    }
+}
