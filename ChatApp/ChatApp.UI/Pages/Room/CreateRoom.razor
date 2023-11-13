@@ -1,0 +1,48 @@
+﻿@page "/createroom"
+@using ChatApp.Domain.DTOs.Http
+@using ChatApp.UI.Services.RoomApplicationService.Interfaces
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<h3>Create room</h3>
+
+<RadzenStack Gap="1.5rem">
+    <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem">
+        <RadzenStack Orientation="Orientation.Horizontal">
+            <RadzenTextBox @bind-Value="@roomName" Placeholder="Enter room name" class="w-100" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal">
+            <RadzenButton Text="Ok" Click="@CreateChat" Style="width: 80px;" />
+            <RadzenButton Text="Cancel" Click="@CloseWindow" ButtonStyle="ButtonStyle.Light" />
+        </RadzenStack>
+    </RadzenStack>
+    <RadzenLabel Text="@error" Style="color: red;" />
+</RadzenStack>
+
+@code {
+    private string roomName;
+    private string error;
+
+    [Inject] private IRoomApplicationService _roomApplicationService { get; set; }
+
+    private void CloseWindow()
+    {
+        Navigation.NavigateTo("/roomgrid");
+    }
+
+    private async Task CreateChat()
+    {
+        if (!string.IsNullOrEmpty(roomName))
+        {
+            var response = await _roomApplicationService.CreateRoomAsync(new AddRoomDto{Name = roomName});
+            if (!response.WasAdded)
+            {
+                error = "Room already exist";
+                return;
+            }
+            CloseWindow();
+        }
+        else
+            error = "Enter some name...";
+    }
+}

@@ -1,5 +1,5 @@
 ﻿@page "/logout"
-@using ChatApp.Application.AuthenticationService.Interfaces
+@using IAuthenticationService = ChatApp.UI.Services.AuthenticationService.Interfaces.IAuthenticationService
 @inject IAuthenticationService AuthenticationService
 @inject NavigationManager NavigationManager
 <h3>Logout</h3>

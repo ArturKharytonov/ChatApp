@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ChatApp.Domain.Common;
+﻿using ChatApp.Domain.Common;
 using ChatApp.Persistence.Common.Interfaces;
 using ChatApp.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace ChatApp.Persistence.Common
 {
@@ -17,6 +13,15 @@ namespace ChatApp.Persistence.Common
         public Repository(ChatDbContext chatDbContext)
         {
             _context = chatDbContext;
+        }
+        public async Task<TEntity?> GetByIdAsync(TId id, params Expression<Func<TEntity, object>>[] includes)
+        {
+            var query = _context.Set<TEntity>().AsQueryable();
+
+            query = includes.Aggregate(query, (current, include) =>
+                current.Include(include));
+
+            return await query.FirstOrDefaultAsync(entity => EF.Property<TId>(entity, "Id").Equals(id));
         }
 
         public async Task<TEntity?> GetByIdAsync(TId id)

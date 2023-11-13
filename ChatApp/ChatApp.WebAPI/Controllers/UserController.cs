@@ -1,12 +1,12 @@
 ﻿using System.Net;
+using ChatApp.Application.Services.UserContext.Interfaces;
+using ChatApp.Application.Services.UserService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
-using ChatApp.WebAPI.Services.UserService.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using IUserContext = ChatApp.WebAPI.Services.UserContext.Interfaces.IUserContext;
 
 namespace ChatApp.WebAPI.Controllers
 {

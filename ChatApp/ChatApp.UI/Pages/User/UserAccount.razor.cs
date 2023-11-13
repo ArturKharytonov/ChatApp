@@ -1,6 +1,5 @@
-﻿using ChatApp.Application.AuthenticationService.Interfaces;
-using ChatApp.Application.UserApplicationService.Interfaces;
-using ChatApp.Domain.DTOs.UserDto;
+﻿using ChatApp.Domain.DTOs.UserDto;
+using ChatApp.UI.Services.UserApplicationService.Interfaces;
 using Microsoft.AspNetCore.Components;
 
 

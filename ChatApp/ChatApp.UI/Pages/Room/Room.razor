@@ -1,8 +1,14 @@
 ﻿@page "/chat/{id}"
+
 @using ChatApp.Domain.DTOs.MessageDto
-@using ChatApp.Domain.DTOs.Http
-@using ChatApp.Application.MessageApplicationService.Interfaces
+@using ChatApp.UI.Services.MessageApplicationService.Interfaces
 @using System.Security.Claims
+@using ChatApp.Domain.DTOs.Http
+@using ChatApp.UI.Services.SignalRService.Interfaces
+
+
+@attribute [Authorize]
+
 <h3>Chat Page</h3>
 
 
@@ -20,7 +26,7 @@
                             align-self: flex-end; border-radius: 5px 35px 5px 35px;">
                     <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
                     <p style="color: #fff; margin-left: 10px;">@message.Content</p>
-                    <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-end;">@message.SentAt.ToString("hh:mm tt")</span>
+                    <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-end;">@message.SentAt.ToString("HH:mm")</span>
                 </div>
             }
             else
@@ -29,7 +35,7 @@
                             color: #fff; align-self: flex-start; border-radius: 35px 5px 35px 5px;">
                     <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
                     <p style="margin-left: 10px;">@message.Content</p>
-                    <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-start;">@message.SentAt.ToString("hh:mm tt")</span>
+                    <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-start;">@message.SentAt.ToString("HH:mm")</span>
                 </div>
             }
         }
@@ -45,23 +51,41 @@
 
 
 @code {
+
     [Parameter]
     public string Id { get; set; }
+
     protected string Input { get; set; }
     private List<MessageDto> Messages { get; set; } = new List<MessageDto>();
-    [Inject] IMessageApplicationService _messageApplicationService { get; set; }
-    [CascadingParameter] private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    [Inject]
+    IMessageApplicationService _messageApplicationService { get; set; }
+
+    [Inject]
+    ISignalRService SignalRService { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    [Inject]
+    NavigationManager NavigationManager { get; set; }
+
     private string _userId;
     private string _userName;
 
     protected override async Task OnInitializedAsync()
     {
+        //TODO: check if room with this id exists and if current user is participant or don't pass room ID in URL
+
         var authenticationState = await authenticationStateTask;
         _userId = authenticationState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         _userName = authenticationState.User.FindFirst(ClaimTypes.Name)?.Value;
-
-        // get all messages
         Messages = await _messageApplicationService.GetMessagesAsync(Id);
+
+        await SignalRService.AddToOnline(Id);
+
+        SignalRService.OnItemReceived += OnMessageReceived;
+        NavigationManager.LocationChanged += HandleLocationChanged;
     }
 
     public async Task OnSendClick()
@@ -70,7 +94,7 @@
         {
             var addMessageDto = new AddMessageDto
             {
-                SentAt = DateTime.UtcNow,
+                SentAt = DateTime.Now,
                 Content = Input,
                 UserId = _userId,
                 RoomId = int.Parse(Id)
@@ -78,9 +102,26 @@
 
             var message = await _messageApplicationService.AddMessageAsync(addMessageDto);
 
-            Messages.Add(message);
-
+            await SignalRService.SendMessage(Id, message);
             Input = string.Empty;
         }
     }
+
+    void OnMessageReceived(MessageDto message)
+    {
+        Messages.Add(message);
+        StateHasChanged();
+    }
+
+    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        await SignalRService.AddToOffline(Id);
+    }
+
+    public void Dispose()
+    {
+        SignalRService.OnItemReceived -= OnMessageReceived;
+        NavigationManager.LocationChanged -= HandleLocationChanged;
+    }
+
 }

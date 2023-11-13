@@ -1,7 +1,7 @@
-﻿using ChatApp.Application.AuthenticationService.Interfaces;
-using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
 using Radzen;
+using IAuthenticationService = ChatApp.UI.Services.AuthenticationService.Interfaces.IAuthenticationService;
 
 namespace ChatApp.UI.Pages.Authentication
 {

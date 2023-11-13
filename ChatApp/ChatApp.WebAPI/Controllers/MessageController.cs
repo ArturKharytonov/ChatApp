@@ -1,9 +1,6 @@
-﻿using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.MessageDto;
+﻿using ChatApp.Application.Services.MessageService.Interfaces;
+using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.Enums;
-using ChatApp.WebAPI.Services.MessageService.Interfaces;
-using ChatApp.WebAPI.Services.UserContext.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChatApp.WebAPI.Controllers
@@ -13,11 +10,9 @@ namespace ChatApp.WebAPI.Controllers
     public class MessageController : ControllerBase
     {
         private readonly IMessageService _messageService;
-        private readonly IUserContext _userContext;
-        public MessageController(IMessageService messageService, IUserContext userContext)
+        public MessageController(IMessageService messageService)
         {
             _messageService = messageService;
-            _userContext = userContext;
         }
 
         [HttpGet("page")]

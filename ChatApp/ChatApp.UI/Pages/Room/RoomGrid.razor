@@ -24,6 +24,8 @@
         </Items>
     </RadzenSelectBar>
     <RadzenDropDown Placeholder="Sort Column" Disabled="!Sorting" @bind-Value=@SortFieldValue TValue="RoomColumnsSorting" Data="@SortingFieldsDropDown" Change="async () => await OnSortChangeAsync()" />
+
+    <RadzenButton Text="Create room" ButtonStyle="ButtonStyle.Secondary" Click=@ShowInlineDialog/>
 </div>
 
 <RadzenDataGrid FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
