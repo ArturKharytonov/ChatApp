@@ -9,24 +9,30 @@
 @using ChatApp.UI.Pages.User
 @attribute [Authorize]
 
-
 <h3>Chat: @_chatName</h3>
+
+<ContextMenu Id="messageMenu">
+    <Item OnClick="@OnEditClick">Edit</Item>
+    <Item OnClick="@OnDeleteClick">Delete</Item>
+</ContextMenu>
 
 <div style="display: flex; flex-direction: column">
     <div>
-        <div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px; max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; background-color: #3F3075; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
-
+        <div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px; max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; 
+                    background-color: #3F3075; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
             @if (Messages.Count > 0)
             {
-                foreach (var message in Messages)
+                @foreach (var message in Messages)
                 {
                     if (message.SenderUsername.Equals(_userName))
                     {
-                        <div style="display: flex; flex-direction: column; padding: 5px; border-radius: 10px; margin-bottom: 10px; max-width: 70%; background-color: #877CB0; align-self: flex-end; border-radius: 5px 35px 5px 35px;">
-                            <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
-                            <p style="color: #fff; margin-left: 10px;">@message.Content</p>
-                            <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-end;">@message.SentAt.ToString("HH:mm")</span>
-                        </div>
+                        <ContextMenuTrigger WrapperTag="div" MenuId="messageMenu" Data="message">
+                            <div class="message-container-sender">
+                                <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
+                                <p style="color: #fff; margin-left: 10px;">@message.Content</p>
+                                <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-end;">@message.SentAt.ToString("HH:mm")</span>
+                            </div>
+                        </ContextMenuTrigger>
                     }
                     else
                     {
@@ -39,6 +45,7 @@
                 }
             }
         </div>
+
         <div class="input" style="height: 15%; display: flex; justify-content: center">
             <div style="display: flex; align-items: center;">
                 <RadzenTextArea Style="resize: none;" Placeholder="Enter here..." MaxLength="400" @bind-Value="@Input" class="w-100 mb-2" />
@@ -52,35 +59,43 @@
 </div>
 
 @code {
+
     [Parameter]
     public string Id { get; set; }
 
     private string _userId;
     private string _userName;
     private string _chatName;
+    private (bool InProcess, MessageDto? Message) _isEditing = (false, null);
     protected string Input { get; set; }
     private List<MessageDto> Messages { get; set; } = new List<MessageDto>();
 
+
     [Inject]
-    IMessageApplicationService _messageApplicationService { get; set; }
+    NotificationService NotificationService { get; set; } = null!;
+
+    [Inject]
+    NavigationManager NavigationManager { get; set; } = null!;
+
+    [Inject]
+    IMessageApplicationService MessageApplicationService { get; set; } = null!;
 
     [Inject] 
-    IRoomApplicationService _roomApplicationService { get; set; }
+    IRoomApplicationService RoomApplicationService { get; set; } = null!;
+
 
     [CascadingParameter]
-    ISignalRService SignalRService { get; set; }
+    ISignalRService SignalRService { get; set; } = null!;
+
 
     [CascadingParameter]
-    private Task<AuthenticationState> _authenticationState { get; set; }
-
-    [Inject]
-    NavigationManager NavigationManager { get; set; }
+    private Task<AuthenticationState> AuthenticationState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         //TODO: check if current user is participant
 
-        var room = await _roomApplicationService.GetRoomAsync(Id);
+        var room = await RoomApplicationService.GetRoomAsync(Id);
 
         if (room.Name.IsNullOrEmpty())
         {
@@ -89,14 +104,16 @@
         }
         _chatName = room.Name;
 
-        var authenticationState = await _authenticationState;
+        var authenticationState = await AuthenticationState;
         _userId = authenticationState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
         _userName = authenticationState.User.FindFirst(ClaimTypes.Name)?.Value!;
 
-        Messages = await _messageApplicationService.GetMessagesAsync(Id);
+        Messages = await MessageApplicationService.GetMessagesAsync(Id);
 
         await SignalRService.AddToOnline(Id);
+        SignalRService.OnItemDelete += OnMessageDelete;
         SignalRService.OnItemReceived += OnMessageReceived;
+        SignalRService.OnItemUpdate += OnMessageUpdate;
         NavigationManager.LocationChanged += HandleLocationChanged;
     }
 
@@ -104,19 +121,52 @@
     {
         if (!string.IsNullOrEmpty(Input))
         {
-            var addMessageDto = new AddMessageDto
+            if (!_isEditing.InProcess)
             {
-                SentAt = DateTime.Now,
-                Content = Input,
-                UserId = _userId,
-                RoomId = int.Parse(Id)
-            };
+                var addMessageDto = new AddMessageDto
+                {
+                    SentAt = DateTime.Now,
+                    Content = Input,
+                    UserId = _userId,
+                    RoomId = int.Parse(Id)
+                };
 
-            var message = await _messageApplicationService.AddMessageAsync(addMessageDto);
-
-            await SignalRService.SendMessage(Id, message);
+                var message = await MessageApplicationService.AddMessageAsync(addMessageDto);
+                await SignalRService.SendMessage(Id, message);
+            }
+            else
+            {
+                _isEditing.Message!.Content = Input;
+                var message = await MessageApplicationService.UpdateMessageAsync(_isEditing.Message!);
+                await SignalRService.UpdateMessageAsync(Id, _isEditing.Message!);
+            }
+            _isEditing.InProcess = false;
+            _isEditing.Message = null;
             Input = string.Empty;
         }
+
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Summary = "Type something!",
+                Severity = NotificationSeverity.Warning,
+                Duration = 3000,
+            });
+        }
+    }
+
+
+    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        SignalRService.OnItemReceived -= OnMessageReceived;
+        SignalRService.OnItemUpdate -= OnMessageUpdate;
+        SignalRService.OnItemDelete -= OnMessageDelete;
+
+        if (!args.Location.Equals("https://localhost:7000/logout"))
+            await SignalRService.AddToOffline(Id);
+        else
+            NavigationManager.LocationChanged -= HandleLocationChanged;
     }
 
     void OnMessageReceived(MessageDto message)
@@ -125,12 +175,30 @@
         StateHasChanged();
     }
 
-    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
+    void OnMessageDelete(MessageDto message)
     {
-        SignalRService.OnItemReceived -= OnMessageReceived;
-        if (!args.Location.Equals("https://localhost:7000/logout"))
-            await SignalRService.AddToOffline(Id);
-        else
-            NavigationManager.LocationChanged -= HandleLocationChanged;
+        Messages = Messages.Where(m => m.Id != message.Id).ToList();
+        StateHasChanged();
+    }
+
+    void OnMessageUpdate(MessageDto message)
+    {
+        Messages.FirstOrDefault(m => m.Id == message.Id)!.Content = message.Content;
+        StateHasChanged();
+    }
+
+    private void OnEditClick(ItemClickEventArgs arg)
+    {
+        var message = arg.Data as MessageDto;
+        _isEditing.InProcess = true;
+        _isEditing.Message = message;
+        Input = message.Content;
+    }
+
+    private async Task OnDeleteClick(ItemClickEventArgs arg)
+    {
+        var message = arg.Data as MessageDto;
+        await MessageApplicationService.DeleteMessageByIdAsync(message.Id);
+        await SignalRService.DeleteMessageAsync(Id, message);
     }
 }

@@ -15,18 +15,19 @@ namespace ChatApp.UI.Services.HttpClientPWAService
         public const string GetUsersBySearch = "https://localhost:7223/api/user/page?";
         public const string GetRoomsBySearch = "https://localhost:7223/api/rooms/page?";
         public const string GetMessagesBySearch = "https://localhost:7223/api/message/page?";
-        public const string AddMessage = "https://localhost:7223/api/message";
         public const string GetAllMessagesFromChat = "https://localhost:7223/api/message/all/";
         public const string CreateRoom = "https://localhost:7223/api/rooms/creating?";
         public const string GetRoom = "https://localhost:7223/api/rooms?";
         public const string GetUserRooms = "https://localhost:7223/api/user/rooms";
         public const string AddUserToRoom = "https://localhost:7223/api/user";
+        public const string Message = "https://localhost:7223/api/message";
 
         private HttpClient HttpClient { get; set; }
         public HttpClientPwa(HttpClient httpClient)
         {
             HttpClient = httpClient;
         }
+
         public async Task<ApiRequestResult<VResult>> PostAsync<TArgument, VResult>(string requestUrl, TArgument data)
         {
             var result = await HttpClient.PostAsJsonAsync(requestUrl, data);
@@ -46,6 +47,26 @@ namespace ChatApp.UI.Services.HttpClientPWAService
                 };
         }
 
+        public async Task<ApiRequestResult<VResult>> PutAsync<TArgument, VResult>(string requestUrl, TArgument data)
+        {
+            var result = await HttpClient.PutAsJsonAsync(requestUrl, data);
+
+            return (result.StatusCode.Equals(HttpStatusCode.Unauthorized) && !result.IsSuccessStatusCode)
+                ? new ApiRequestResult<VResult>
+                {
+                    Success = result.IsSuccessStatusCode,
+                    Result = default,
+                    StatusCode = result.StatusCode
+                }
+                : new ApiRequestResult<VResult>
+                {
+                    Success = result.IsSuccessStatusCode,
+                    Result = await result.Content.ReadFromJsonAsync<VResult>(),
+                    StatusCode = result.StatusCode
+                };
+        }
+
+
         public async Task<ApiRequestResult<T>> GetAsync<T>(string requestUrl)
         {
             var response = await HttpClient.GetAsync(requestUrl);
@@ -64,6 +85,11 @@ namespace ChatApp.UI.Services.HttpClientPWAService
                     StatusCode = response.StatusCode
                 };
         }
+        public async Task DeleteAsync(string url)
+        {
+            await HttpClient.DeleteAsync(url);
+        }
+
 
         public void TryAddJwtToken(string token)
         {

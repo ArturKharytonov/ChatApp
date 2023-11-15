@@ -33,6 +33,7 @@ namespace ChatApp.Application.Services.MessageService
 
             var messages = room.Messages.Select(x => new MessageDto
             {
+                Id = x.Id,
                 SenderUsername = x.Sender.UserName,
                 Content = x.Content,
                 SentAt = x.SentAt,
@@ -97,6 +98,23 @@ namespace ChatApp.Application.Services.MessageService
                 Items = messageInformation,
                 TotalCount = totalCount
             };
+        }
+        public async Task<bool> UpdateMessageAsync(MessageDto message)
+        {
+            var repo = _unitOfWork.GetRepository<Message, int>();
+            var updatingMessage = await repo.GetByIdAsync(message.Id);
+
+            if (updatingMessage == null) return false;
+
+            updatingMessage.Content = message.Content;
+            repo.Update(updatingMessage);
+            await _unitOfWork.SaveAsync();
+            return true;
+        }
+        public async Task DeleteMessageAsync(int messageId)
+        {
+            var repo = _unitOfWork.GetRepository<Message, int>()!;
+            await repo.DeleteAsync(messageId);
         }
     }
 }

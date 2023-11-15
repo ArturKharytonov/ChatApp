@@ -1,0 +1,23 @@
+.message-container-sender {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    max-width: 70%;
+    background-color: #877CB0;
+    align-self: flex-end;
+    border-radius: 5px 35px 5px 35px;
+}
+
+.message-container-other {
+    display: flex;
+    flex-direction: column;
+    padding: 2px;
+    margin-bottom: 10px;
+    max-width: 70%;
+    background-color: #605396;
+    color: #fff;
+    align-self: flex-start;
+    border-radius: 35px 5px 35px 5px;
+}

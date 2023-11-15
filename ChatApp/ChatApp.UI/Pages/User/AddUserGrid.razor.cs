@@ -7,6 +7,11 @@ using ChatApp.UI.Pages.Common.ComponentHelpers;
 using ChatApp.UI.Services.UserApplicationService.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Radzen;
+using Radzen.Blazor.Rendering;
+using Radzen.Blazor;
+using Microsoft.JSInterop;
+using ChatApp.UI.Services.SignalRService.Interfaces;
+using ChatApp.UI.Services.SignalRService;
 
 namespace ChatApp.UI.Pages.User
 {
@@ -21,6 +26,10 @@ namespace ChatApp.UI.Pages.User
         [Inject] public NavigationManager NavigationManager { get; set; }
         [Inject] public IUserApplicationService UserApplicationService { get; set; }
         [Inject] private NotificationService NotificationService { get; set; }
+
+        [CascadingParameter]
+        ISignalRService SignalRService { get; set; } = null!;
+
         public string? Input { get; set; }
 
         public async Task<GridModelResponse<UserDto>?> GetItems(int pageNumber)
@@ -63,12 +72,15 @@ namespace ChatApp.UI.Pages.User
                 { UserId = selectedUser.Id.ToString(), RoomId = Id });
 
             if (response.WasAdded)
+            {
+                await SignalRService.AddToRoom(Id);
                 NotificationService.Notify(new NotificationMessage
                 {
                     Summary = $"User: {selectedUser.Id} was added to room",
                     Severity = NotificationSeverity.Info,
                     Duration = 3000,
                 });
+            }
             else 
                 NotificationService.Notify(new NotificationMessage
                 {

@@ -12,6 +12,9 @@ namespace ChatApp.UI.Services.SignalRService
         private HubConnection? _hubConnection;
 
         public event Action<MessageDto> OnItemReceived;
+        public event Action<MessageDto> OnItemDelete;
+        public event Action<MessageDto> OnItemUpdate;
+
 
         private readonly NotificationService _notificationService;
         private readonly NavigationManager _navigationManager;
@@ -32,6 +35,8 @@ namespace ChatApp.UI.Services.SignalRService
                 .Build();
 
             _hubConnection.On<MessageDto>("ReceiveMessage", item => OnItemReceived?.Invoke(item));
+            _hubConnection.On<MessageDto>("OnMessageDelete", item => OnItemDelete?.Invoke(item));
+            _hubConnection.On<MessageDto>("OnMessageUpdate", item => OnItemUpdate?.Invoke(item));
 
             _hubConnection.On<string, string, string>("ReceiveNotification", (username, roomName, roomId) =>
             {
@@ -51,6 +56,7 @@ namespace ChatApp.UI.Services.SignalRService
             if (_hubConnection is not null)
                 await _hubConnection.StopAsync();
         }
+
         public async Task SendMessage(string id, MessageDto message)
         {
             if (_hubConnection is null)
@@ -59,7 +65,18 @@ namespace ChatApp.UI.Services.SignalRService
             await _hubConnection.SendAsync("ChatNotificationAsync", message.SenderUsername, message.RoomName, id);
             await _hubConnection.SendAsync("SendMessage", id, message);
         }
-
+        public async Task DeleteMessageAsync(string id, MessageDto message)
+        {
+            if (_hubConnection is null)
+                return;
+            await _hubConnection.SendAsync("DeleteMessageAsync", id, message);
+        }
+        public async Task UpdateMessageAsync(string id, MessageDto messageToUpdate)
+        {
+            if (_hubConnection is null)
+                return;
+            await _hubConnection.SendAsync("UpdateMessageAsync", id, messageToUpdate);
+        }
         // on one group layer
         public async Task AddToOnline(string id)
         {
