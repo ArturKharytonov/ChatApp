@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace ChatApp.Domain.DTOs.Http.Responses
 {
-    public class AddRoomResponseDto
+    public class AddUserToChatResponseDto
     {
-        public int? CreatedRoomId { get; set; }
         public bool WasAdded { get; set; }
     }
 }

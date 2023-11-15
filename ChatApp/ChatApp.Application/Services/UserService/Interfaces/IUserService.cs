@@ -8,6 +8,8 @@ namespace ChatApp.Application.Services.UserService.Interfaces
 {
     public interface IUserService
     {
+        Task<User?> GetWithAll(string id);
+        Task<bool> AddUserToRoomAsync(AddUserToRoomDto userToRoom);
         Task<bool> ChangePasswordAsync(string id, string newPassword, string currentPassword);
         Task<bool> UpdateUserAsync(UserDto user);
         Task<User?> GetUserAsync(string id);

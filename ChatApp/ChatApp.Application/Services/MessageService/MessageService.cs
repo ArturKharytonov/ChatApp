@@ -18,6 +18,7 @@ namespace ChatApp.Application.Services.MessageService
         private readonly IQueryBuilder<MessageDto> _queryBuilder;
         private readonly UserManager<User> _userManager;
         private const int _pageSize = 5;
+
         public MessageService(IUnitOfWork unitOfWork, IQueryBuilder<MessageDto> queryBuilder, UserManager<User> userManager)
         {
             _unitOfWork = unitOfWork;
@@ -41,7 +42,6 @@ namespace ChatApp.Application.Services.MessageService
 
             return messages;
         }
-
         public async Task<MessageDto> AddMessageAsync(AddMessageDto addMessageDto)
         {
             var user = await _userManager.FindByIdAsync(addMessageDto.UserId);

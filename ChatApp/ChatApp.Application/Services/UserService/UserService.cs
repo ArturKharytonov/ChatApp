@@ -4,7 +4,9 @@ using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
+using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
+using ChatApp.Persistence.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace ChatApp.Application.Services.UserService
@@ -13,11 +15,37 @@ namespace ChatApp.Application.Services.UserService
     {
         private readonly UserManager<User> _userManager;
         private readonly IQueryBuilder<User> _queryBuilder;
+        private readonly IUnitOfWork _unitOfWork;
         private const int _pageSize = 5;
-        public UserService(UserManager<User> userManager, IQueryBuilder<User> queryBuilder)
+
+        public UserService(UserManager<User> userManager, IQueryBuilder<User> queryBuilder, IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _queryBuilder = queryBuilder;
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<User?> GetWithAll(string id)
+        {
+            return await _unitOfWork
+                .GetRepository<User, int>()!
+                .GetByIdAsync(int.Parse(id), u => u.Messages, u => u.Rooms);
+        }
+
+        public async Task<bool> AddUserToRoomAsync(AddUserToRoomDto userToRoom)
+        {
+            var user = await GetUserAsync(userToRoom.UserId);
+            var room = await _unitOfWork
+                .GetRepository<Room, int>()!
+                .GetByIdAsync(int.Parse(userToRoom.RoomId!), r => r.Users);
+
+            if (user is null ||
+                room is null ||
+                room.Users.Contains(user)) return false;
+
+            room.Users.Add(user);
+            await _unitOfWork.SaveAsync();
+            return true;
         }
 
         public async Task<User?> GetUserAsync(string id)

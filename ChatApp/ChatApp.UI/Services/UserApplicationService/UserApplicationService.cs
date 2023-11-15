@@ -6,6 +6,7 @@ using ChatApp.Domain.Enums;
 using ChatApp.UI.Services.HttpClientPWAService;
 using ChatApp.UI.Services.HttpClientPWAService.Interfaces;
 using ChatApp.UI.Services.UserApplicationService.Interfaces;
+using Microsoft.AspNetCore.Http;
 
 namespace ChatApp.UI.Services.UserApplicationService
 {
@@ -36,10 +37,21 @@ namespace ChatApp.UI.Services.UserApplicationService
 
             return result.Result;
         }
+        public async Task<AddUserToChatResponseDto> AddUserToGroup(AddUserToRoomDto user)
+        {
+            var result = await _clientPwa.PostAsync<AddUserToRoomDto, AddUserToChatResponseDto>(HttpClientPwa.AddUserToRoom, user);
+
+            return result.Result;
+        }
+        public async Task<UserGroupsResponseDto?> GetAllUserGroups()
+        {
+            var result = await _clientPwa.GetAsync<UserGroupsResponseDto>(HttpClientPwa.GetUserRooms);
+
+            return result.Result;
+        }
 
         private static string GenerateQueryString(GridModelDto<UserColumnsSorting> gridModelDto)
-        { 
-
+        {
             var queryParameters = new System.Collections.Specialized.NameValueCollection
             {
                 ["data"] = gridModelDto.Data,

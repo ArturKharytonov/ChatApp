@@ -32,6 +32,7 @@ builder.Services.AddRadzenComponents();
 builder.Services.AddScoped<NotificationService>();
 
 builder.Services.AddScoped<ISignalRService, SignalRService>();
+
 builder.Services.AddScoped<IMessageApplicationService, MessageApplicationService>();
 builder.Services.AddScoped<IRoomApplicationService, RoomApplicationService>();
 builder.Services.AddScoped<IUserApplicationService, UserApplicationService>();

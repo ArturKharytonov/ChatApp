@@ -17,8 +17,10 @@ namespace ChatApp.UI.Services.HttpClientPWAService
         public const string GetMessagesBySearch = "https://localhost:7223/api/message/page?";
         public const string AddMessage = "https://localhost:7223/api/message";
         public const string GetAllMessagesFromChat = "https://localhost:7223/api/message/all/";
-        public const string CreateRoom = "https://localhost:7223/api/rooms?";
-
+        public const string CreateRoom = "https://localhost:7223/api/rooms/creating?";
+        public const string GetRoom = "https://localhost:7223/api/rooms?";
+        public const string GetUserRooms = "https://localhost:7223/api/user/rooms";
+        public const string AddUserToRoom = "https://localhost:7223/api/user";
 
         private HttpClient HttpClient { get; set; }
         public HttpClientPwa(HttpClient httpClient)

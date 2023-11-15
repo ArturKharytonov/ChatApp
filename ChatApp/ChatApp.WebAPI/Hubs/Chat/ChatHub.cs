@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.WebAPI.Hubs.Chat
 {
+    [Authorize]
     public class ChatHub : Hub
     {
         private const string _online = "Online";

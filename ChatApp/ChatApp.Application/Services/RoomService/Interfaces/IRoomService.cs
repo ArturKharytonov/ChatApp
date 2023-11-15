@@ -7,7 +7,8 @@ namespace ChatApp.Application.Services.RoomService.Interfaces
 {
     public interface IRoomService
     {
-        Task<int?> CreateRoom(string name);
+        Task<RoomDto> GetRoom(int id);
+        Task<int?> CreateRoom(string name, string creatorId);
         Task<GridModelResponse<RoomDto>> GetRoomsPageAsync(int userId, GridModelDto<RoomColumnsSorting> data);
     }
 }

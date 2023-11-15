@@ -23,6 +23,37 @@ namespace ChatApp.WebAPI.Controllers
             _userContext = userContext;
         }
 
+        [HttpPost]
+        public async Task<IActionResult> AddUserToGroup([FromBody] AddUserToRoomDto userToRoomDto)
+        {
+            if (await _userService.AddUserToRoomAsync(userToRoomDto))
+                return Ok(new AddRoomResponseDto { WasAdded = true });
+
+            return Ok(new AddRoomResponseDto{WasAdded = false});
+        }
+
+        [HttpGet("rooms")]
+        public async Task<IActionResult> GetUserGroupsAsync()
+        {
+            var userIdClaim = _userContext.GetUserId();
+            var user = await _userService.GetWithAll(userIdClaim!);
+
+            if(user is null)
+                return NotFound();
+            
+            var userGroupsResponseDto = new UserGroupsResponseDto();
+
+            if (user.Rooms.Count > 0)
+            {
+                foreach (var room in user.Rooms)
+                {
+                    userGroupsResponseDto.GroupsId.Add(room.Id.ToString());
+                }
+            }
+
+            return Ok(userGroupsResponseDto);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetUserAsync()
         {

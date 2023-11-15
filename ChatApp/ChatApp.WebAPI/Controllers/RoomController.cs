@@ -2,7 +2,10 @@
 using ChatApp.Application.Services.UserContext.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
+using ChatApp.UI.Services.SignalRService;
+using ChatApp.UI.Services.SignalRService.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,17 +31,26 @@ namespace ChatApp.WebAPI.Controllers
             return Ok(await _roomService.GetRoomsPageAsync(id, model));
         }
 
-        [HttpGet]
-        public async Task<IActionResult> CreateRoom([FromQuery] AddRoomDto room)
+        [HttpGet("creating")]
+        public async Task<IActionResult> CreateRoom([FromQuery] string roomName)
         {
-            int.TryParse(_userContext.GetUserId(), out var id);
-            var roomId = await _roomService.CreateRoom(room.Name);
+            var id = _userContext.GetUserId();
+            var roomId = await _roomService.CreateRoom(roomName, id);
+
             if (roomId.HasValue)
-            {
-                //TODO: add user to userAndRooms
-                return Ok(new AddRoomResponseDto { WasAdded = true });
-            }
+                return Ok(new AddRoomResponseDto { WasAdded = true, CreatedRoomId = roomId });
+            
+
             return BadRequest(new AddRoomResponseDto{WasAdded = false});
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetRoom([FromQuery] string id)
+        {
+            if (!int.TryParse(id, out var roomId)) return BadRequest();
+
+            var room = await _roomService.GetRoom(roomId);
+            return Ok(room);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿@page "/createroom"
 @using ChatApp.Domain.DTOs.Http
 @using ChatApp.UI.Services.RoomApplicationService.Interfaces
+@using ChatApp.UI.Services.SignalRService.Interfaces
 @inject NavigationManager Navigation
 @attribute [Authorize]
 
@@ -23,6 +24,7 @@
     private string roomName;
     private string error;
 
+    [CascadingParameter] ISignalRService SignalRService { get; set; }
     [Inject] private IRoomApplicationService _roomApplicationService { get; set; }
 
     private void CloseWindow()
@@ -40,6 +42,7 @@
                 error = "Room already exist";
                 return;
             }
+            await SignalRService.AddToRoom(response.CreatedRoomId.ToString()!);
             CloseWindow();
         }
         else

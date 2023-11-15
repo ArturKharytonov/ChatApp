@@ -1,89 +1,101 @@
 ﻿@page "/chat/{id}"
-
 @using ChatApp.Domain.DTOs.MessageDto
 @using ChatApp.UI.Services.MessageApplicationService.Interfaces
 @using System.Security.Claims
 @using ChatApp.Domain.DTOs.Http
+@using ChatApp.UI.Services.RoomApplicationService.Interfaces
 @using ChatApp.UI.Services.SignalRService.Interfaces
-
-
+@using Microsoft.IdentityModel.Tokens
+@using ChatApp.UI.Pages.User
 @attribute [Authorize]
 
-<h3>Chat Page</h3>
 
+<h3>Chat: @_chatName</h3>
 
-<div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px;
-            max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; background-color: #3F3075; border: 1px solid #ccc;
-            border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
+<div style="display: flex; flex-direction: column">
+    <div>
+        <div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px; max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; background-color: #3F3075; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
 
-    @if (Messages.Count > 0)
-    {
-        foreach (var message in Messages)
-        {
-            if (message.SenderUsername.Equals(_userName))
+            @if (Messages.Count > 0)
             {
-                <div style="display: flex; flex-direction: column; padding: 5px; border-radius: 10px; margin-bottom: 10px; max-width: 70%; background-color: #877CB0;
-                            align-self: flex-end; border-radius: 5px 35px 5px 35px;">
-                    <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
-                    <p style="color: #fff; margin-left: 10px;">@message.Content</p>
-                    <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-end;">@message.SentAt.ToString("HH:mm")</span>
-                </div>
+                foreach (var message in Messages)
+                {
+                    if (message.SenderUsername.Equals(_userName))
+                    {
+                        <div style="display: flex; flex-direction: column; padding: 5px; border-radius: 10px; margin-bottom: 10px; max-width: 70%; background-color: #877CB0; align-self: flex-end; border-radius: 5px 35px 5px 35px;">
+                            <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
+                            <p style="color: #fff; margin-left: 10px;">@message.Content</p>
+                            <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-end;">@message.SentAt.ToString("HH:mm")</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="display: flex; flex-direction: column; padding: 2px; margin-bottom: 10px; max-width: 70%; background-color: #605396; color: #fff; align-self: flex-start; border-radius: 35px 5px 35px 5px;">
+                            <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
+                            <p style="margin-left: 10px;">@message.Content</p>
+                            <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-start;">@message.SentAt.ToString("HH:mm")</span>
+                        </div>
+                    }
+                }
             }
-            else
-            {
-                <div style="display: flex; flex-direction: column; padding: 2px; margin-bottom: 10px; max-width: 70%; background-color: #605396;
-                            color: #fff; align-self: flex-start; border-radius: 35px 5px 35px 5px;">
-                    <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
-                    <p style="margin-left: 10px;">@message.Content</p>
-                    <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-start;">@message.SentAt.ToString("HH:mm")</span>
-                </div>
-            }
-        }
-    }
-</div>
-
-<div class="input" style="height: 15%; display: flex; justify-content: center">
-    <div style="display: flex; align-items: center;">
-        <RadzenTextArea Style="resize: none;" Placeholder="Enter here..." MaxLength="400" @bind-Value="@Input" class="w-100 mb-2" />
-        <RadzenButton Icon="send" Class="btn btn-primary" Click="@OnSendClick" style="margin-left: 8px;" />
+        </div>
+        <div class="input" style="height: 15%; display: flex; justify-content: center">
+            <div style="display: flex; align-items: center;">
+                <RadzenTextArea Style="resize: none;" Placeholder="Enter here..." MaxLength="400" @bind-Value="@Input" class="w-100 mb-2" />
+                <RadzenButton Icon="send" Class="btn btn-primary" Click="@OnSendClick" style="margin-left: 8px;" />
+            </div>
+        </div>
+    </div>
+    <div style="width: 250px;">
+        <AddUserGrid Id="@Id"/>
     </div>
 </div>
 
-
 @code {
-
     [Parameter]
     public string Id { get; set; }
 
+    private string _userId;
+    private string _userName;
+    private string _chatName;
     protected string Input { get; set; }
     private List<MessageDto> Messages { get; set; } = new List<MessageDto>();
 
     [Inject]
     IMessageApplicationService _messageApplicationService { get; set; }
 
-    [Inject]
+    [Inject] 
+    IRoomApplicationService _roomApplicationService { get; set; }
+
+    [CascadingParameter]
     ISignalRService SignalRService { get; set; }
 
     [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private Task<AuthenticationState> _authenticationState { get; set; }
 
     [Inject]
     NavigationManager NavigationManager { get; set; }
 
-    private string _userId;
-    private string _userName;
-
     protected override async Task OnInitializedAsync()
     {
-        //TODO: check if room with this id exists and if current user is participant or don't pass room ID in URL
+        //TODO: check if current user is participant
 
-        var authenticationState = await authenticationStateTask;
-        _userId = authenticationState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        _userName = authenticationState.User.FindFirst(ClaimTypes.Name)?.Value;
+        var room = await _roomApplicationService.GetRoomAsync(Id);
+
+        if (room.Name.IsNullOrEmpty())
+        {
+            NavigationManager.NavigateTo("/roomgrid");
+            return;
+        }
+        _chatName = room.Name;
+
+        var authenticationState = await _authenticationState;
+        _userId = authenticationState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+        _userName = authenticationState.User.FindFirst(ClaimTypes.Name)?.Value!;
+
         Messages = await _messageApplicationService.GetMessagesAsync(Id);
 
         await SignalRService.AddToOnline(Id);
-
         SignalRService.OnItemReceived += OnMessageReceived;
         NavigationManager.LocationChanged += HandleLocationChanged;
     }
@@ -115,13 +127,10 @@
 
     private async void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
     {
-        await SignalRService.AddToOffline(Id);
-    }
-
-    public void Dispose()
-    {
         SignalRService.OnItemReceived -= OnMessageReceived;
-        NavigationManager.LocationChanged -= HandleLocationChanged;
+        if (!args.Location.Equals("https://localhost:7000/logout"))
+            await SignalRService.AddToOffline(Id);
+        else
+            NavigationManager.LocationChanged -= HandleLocationChanged;
     }
-
 }

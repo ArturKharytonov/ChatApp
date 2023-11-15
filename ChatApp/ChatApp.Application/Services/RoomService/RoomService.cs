@@ -5,7 +5,9 @@ using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Domain.Rooms;
+using ChatApp.Domain.Users;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace ChatApp.Application.Services.RoomService
 {
@@ -13,22 +15,42 @@ namespace ChatApp.Application.Services.RoomService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IQueryBuilder<RoomDto> _queryBuilder;
+        private readonly UserManager<User> _userManager;
         private const int _pageSize = 5;
-
-        public RoomService(IQueryBuilder<RoomDto> queryBuilder, IUnitOfWork unitOfWork)
+        public RoomService(IQueryBuilder<RoomDto> queryBuilder, IUnitOfWork unitOfWork, UserManager<User> userManager)
         {
             _queryBuilder = queryBuilder;
             _unitOfWork = unitOfWork;
+            _userManager = userManager;
         }
-        public async Task<int?> CreateRoom(string name)
+
+        public async Task<RoomDto> GetRoom(int id)
+        {
+            var room = await _unitOfWork.GetRepository<Room, int>()!.GetByIdAsync(id);
+
+            if (room == null)
+                return new RoomDto();
+
+            return new RoomDto
+            {
+                Id = room.Id,
+                Name = room.Name
+            };
+        }
+        public async Task<int?> CreateRoom(string name, string creatorId)
         {
             var repo = _unitOfWork.GetRepository<Room, int>()!;
             var list = await repo.GetAllAsQueryableAsync();
+            var user = await _userManager.FindByIdAsync(creatorId);
 
-            if (list.Any(x => x.Name == name)) 
+            if (list.Any(x => x.Name == name) ||
+                user == null) 
                 return null;
 
             var room = new Room { Name = name };
+
+            room.Users.Add(user);
+
             await repo.CreateAsync(room);
             await _unitOfWork.SaveAsync();
 

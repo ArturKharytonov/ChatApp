@@ -29,7 +29,7 @@ namespace ChatApp.WebAPI.Controllers
         }
 
         [HttpGet("all/{roomId}")]
-        public async Task<IActionResult> GetAllMessages(string roomId)
+        public async Task<IActionResult> GetAllMessages([FromRoute] string roomId)
         {
             return Ok(await _messageService.GetMessagesFromChat(roomId));
         }
