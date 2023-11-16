@@ -50,13 +50,11 @@ namespace ChatApp.UI.Services.SignalRService
             });
             await _hubConnection.StartAsync();
         }
-
         public async Task StopConnection()
         {
             if (_hubConnection is not null)
                 await _hubConnection.StopAsync();
         }
-
         public async Task SendMessage(string id, MessageDto message)
         {
             if (_hubConnection is null)
@@ -77,6 +75,8 @@ namespace ChatApp.UI.Services.SignalRService
                 return;
             await _hubConnection.SendAsync("UpdateMessageAsync", id, messageToUpdate);
         }
+
+
         // on one group layer
         public async Task AddToOnline(string id)
         {
@@ -91,7 +91,6 @@ namespace ChatApp.UI.Services.SignalRService
             await _hubConnection.SendAsync("AddToOfflineOfRoom", id);
         }
         // on one group layer
-
 
         //maybe useless methods
         public async Task AddToRoom(string id)

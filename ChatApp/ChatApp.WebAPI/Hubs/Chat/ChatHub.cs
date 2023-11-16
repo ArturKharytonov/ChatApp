@@ -31,22 +31,22 @@ namespace ChatApp.WebAPI.Hubs.Chat
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId + _online);
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId + _offline);
         }
+
         public async Task SendMessage(string roomId, MessageDto message)
             => await Clients
                 .Groups(roomId + _online)
                 .SendAsync("ReceiveMessage", message);
+
         public async Task DeleteMessageAsync(string roomId, MessageDto message)
-        {
-            await Clients
+            => await Clients
                 .Groups(roomId + _online)
                 .SendAsync("OnMessageDelete", message);
-        }
+        
         public async Task UpdateMessageAsync(string roomId, MessageDto message)
-        {
-            await Clients
+            => await Clients
                 .Groups(roomId + _online)
                 .SendAsync("OnMessageUpdate", message);
-        }
+        
         public async Task ChatNotificationAsync(string sender, string roomName, string roomId)
             => await Clients
                 .Groups(roomId + _offline)
