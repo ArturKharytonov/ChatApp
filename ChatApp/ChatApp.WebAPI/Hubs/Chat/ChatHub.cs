@@ -1,4 +1,5 @@
 ﻿using ChatApp.Domain.DTOs.MessageDto;
+using ChatApp.Domain.DTOs.UserDto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
@@ -9,6 +10,50 @@ namespace ChatApp.WebAPI.Hubs.Chat
     {
         private const string _online = "Online";
         private const string _offline = "Offline";
+        private static Dictionary<string, List<UserDto>> callParticipants = new Dictionary<string, List<UserDto>>();
+
+        //call
+        public async Task NotifyAboutCall(string roomId, string roomName, string userName)
+        {
+            await Clients
+            .Groups(roomId + _online)
+                .SendAsync("CallStarted", roomName, userName);
+            await Clients
+                .Groups(roomId + _offline)
+                .SendAsync("CallStarted", roomName, userName);
+        }
+        public async Task JoinCall(string roomName, UserDto user)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
+
+            if (!callParticipants.ContainsKey(roomName))
+                callParticipants[roomName] = new List<UserDto>();
+
+            if (callParticipants[roomName].Any(u =>
+                    u.Id == user.Id) == false)
+            {
+                callParticipants[roomName].Add(user);
+
+                await Clients
+                    .Groups(roomName)
+                    .SendAsync("OnUpdateParticipants", callParticipants[roomName]);
+            }
+        }
+        public async Task LeaveCall(string roomName, UserDto user)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
+
+            if (callParticipants.ContainsKey(roomName))
+            {
+                callParticipants[roomName] = callParticipants[roomName].Where(u => u.Id != user.Id).ToList();
+
+
+                await Clients
+                    .Groups(roomName)
+                    .SendAsync("OnUpdateParticipants", callParticipants[roomName]);
+            }
+        }
+        //call
 
         public async Task JoinRoom(string roomId)
         {
@@ -26,6 +71,7 @@ namespace ChatApp.WebAPI.Hubs.Chat
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId + _offline);
             await Groups.AddToGroupAsync(Context.ConnectionId, roomId + _online);
         }
+
         public async Task AddToOfflineOfRoom(string roomId)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId + _online);

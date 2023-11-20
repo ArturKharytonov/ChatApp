@@ -1,0 +1,83 @@
+﻿@page "/call/{id}"
+@using ChatApp.Domain.DTOs.UserDto
+@using ChatApp.UI.Services.SignalRService.Interfaces
+@using ChatApp.UI.Services.UserApplicationService.Interfaces
+@using ChatApp.Domain.DTOs.RoomDto
+@using ChatApp.UI.Services.RoomApplicationService.Interfaces
+@using Microsoft.IdentityModel.Tokens
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<div>
+    @if (ParticipantsList.Count > 0)
+    {
+        @foreach (var participant in ParticipantsList)
+        {
+            <div>
+                <p>@participant.Username</p>
+                <video id=@($"video_{participant.Id}") autoplay muted playsinline style="width: 300px; height: 300px;"></video>
+            </div>
+        }
+    }
+</div>
+
+<RadzenButton Click=@OnLeaveClick Text="Leave" Icon="exit_to_app" ButtonStyle="ButtonStyle.Danger" />
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    List<UserDto> ParticipantsList { get; set; } = new List<UserDto>();
+
+    [CascadingParameter]
+    ISignalRService SignalRService { get; set; } = null!;
+    [Inject]
+    IUserApplicationService UserApplicationService { get; set; } = null!;
+    [Inject]
+    IRoomApplicationService RoomApplicationService { get; set; } = null!;
+
+    private UserDto? _currentUser;
+    private RoomDto? _room;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var room = await RoomApplicationService.GetRoomAsync(Id);
+
+        if (room.Name.IsNullOrEmpty())
+        {
+            NavigationManager.NavigateTo($"/chat/{Id}");
+            return;
+        }
+        _room = room;
+        _currentUser = await UserApplicationService.GetUserAsync();
+
+        await SignalRService.AddToCall(_room.Name, _currentUser);
+        SignalRService.OnParticipantsUpdate += OnListUpdate;
+    }
+
+    private async Task OnLeaveClick()
+    {
+        await SignalRService.LeaveFromCall(_room.Name, _currentUser);
+        await JsRuntime.InvokeVoidAsync("stopMedia", $"video_{_currentUser.Id}");
+
+        SignalRService.OnParticipantsUpdate -= OnListUpdate;
+        NavigationManager.NavigateTo("/");
+    }
+
+    private void OnListUpdate(List<UserDto> users)
+    {
+        ParticipantsList = users;
+        if (ParticipantsList.Count == 0)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+        foreach (var participant in ParticipantsList)
+        {
+            Task.Run(async () =>
+                await JsRuntime.InvokeVoidAsync("setupMedia", $"video_{participant.Id}"));
+        }
+        StateHasChanged();
+    }
+}

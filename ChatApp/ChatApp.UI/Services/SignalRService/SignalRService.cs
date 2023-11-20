@@ -1,5 +1,7 @@
 ﻿using Blazored.LocalStorage;
 using ChatApp.Domain.DTOs.MessageDto;
+using ChatApp.Domain.DTOs.UserDto;
+using ChatApp.Domain.Users;
 using ChatApp.UI.Services.SignalRService.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -14,7 +16,7 @@ namespace ChatApp.UI.Services.SignalRService
         public event Action<MessageDto> OnItemReceived;
         public event Action<MessageDto> OnItemDelete;
         public event Action<MessageDto> OnItemUpdate;
-
+        public event Action<List<UserDto>> OnParticipantsUpdate;
 
         private readonly NotificationService _notificationService;
         private readonly NavigationManager _navigationManager;
@@ -37,6 +39,18 @@ namespace ChatApp.UI.Services.SignalRService
             _hubConnection.On<MessageDto>("ReceiveMessage", item => OnItemReceived?.Invoke(item));
             _hubConnection.On<MessageDto>("OnMessageDelete", item => OnItemDelete?.Invoke(item));
             _hubConnection.On<MessageDto>("OnMessageUpdate", item => OnItemUpdate?.Invoke(item));
+            
+            _hubConnection.On<List<UserDto>>("OnUpdateParticipants", list => OnParticipantsUpdate?.Invoke(list));
+
+            _hubConnection.On<string, string>("CallStarted", (chatName,userName) =>
+            {
+                _notificationService.Notify(new NotificationMessage
+                {
+                    Summary = $"{userName} entered to {chatName} meeting",
+                    Severity = NotificationSeverity.Info,
+                    Duration = 4000
+                });
+            });
 
             _hubConnection.On<string, string, string>("ReceiveNotification", (username, roomName, roomId) =>
             {
@@ -48,6 +62,7 @@ namespace ChatApp.UI.Services.SignalRService
                     Click = (message) => _navigationManager.NavigateTo($"/chat/{roomId}")
                 });
             });
+
             await _hubConnection.StartAsync();
         }
         public async Task StopConnection()
@@ -76,6 +91,29 @@ namespace ChatApp.UI.Services.SignalRService
             await _hubConnection.SendAsync("UpdateMessageAsync", id, messageToUpdate);
         }
 
+
+        //call
+        public async Task NotifyAboutCall(string roomId, string roomName, string userName)
+        {
+            if (_hubConnection is null)
+                return;
+            await _hubConnection.SendAsync("NotifyAboutCall", roomId, roomName, userName);
+        }
+
+        public async Task AddToCall(string roomName, UserDto user)
+        {
+            if (_hubConnection is null)
+                return;
+            await _hubConnection.SendAsync("JoinCall", roomName, user);
+        }
+
+        public async Task LeaveFromCall(string roomName, UserDto user)
+        {
+            if (_hubConnection is null)
+                return;
+            await _hubConnection.SendAsync("LeaveCall", roomName, user);
+        }
+        //call
 
         // on one group layer
         public async Task AddToOnline(string id)

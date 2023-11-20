@@ -7,8 +7,6 @@ using ChatApp.UI.Services.MessageApplicationService;
 using ChatApp.UI.Services.MessageApplicationService.Interfaces;
 using ChatApp.UI.Services.RoomApplicationService;
 using ChatApp.UI.Services.RoomApplicationService.Interfaces;
-using ChatApp.UI.Services.RtcService;
-using ChatApp.UI.Services.RtcService.Interfaces;
 using ChatApp.UI.Services.SignalRService;
 using ChatApp.UI.Services.SignalRService.Interfaces;
 using ChatApp.UI.Services.UserApplicationService;
@@ -31,7 +29,6 @@ builder.Services.AddBlazorContextMenu();
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ISignalRService, SignalRService>();
 
@@ -43,5 +40,4 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
-builder.Services.AddScoped<IRtcService, RtcService>();
 await builder.Build().RunAsync();

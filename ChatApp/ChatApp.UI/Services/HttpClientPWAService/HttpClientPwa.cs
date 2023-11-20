@@ -46,7 +46,6 @@ namespace ChatApp.UI.Services.HttpClientPWAService
                     StatusCode = result.StatusCode
                 };
         }
-
         public async Task<ApiRequestResult<VResult>> PutAsync<TArgument, VResult>(string requestUrl, TArgument data)
         {
             var result = await HttpClient.PutAsJsonAsync(requestUrl, data);
@@ -65,8 +64,6 @@ namespace ChatApp.UI.Services.HttpClientPWAService
                     StatusCode = result.StatusCode
                 };
         }
-
-
         public async Task<ApiRequestResult<T>> GetAsync<T>(string requestUrl)
         {
             var response = await HttpClient.GetAsync(requestUrl);
@@ -89,7 +86,6 @@ namespace ChatApp.UI.Services.HttpClientPWAService
         {
             await HttpClient.DeleteAsync(url);
         }
-
 
         public void TryAddJwtToken(string token)
         {
