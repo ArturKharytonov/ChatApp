@@ -1,0 +1,22 @@
+﻿@using ChatApp.Domain.DTOs.UserDto
+@page "/addusergrid"
+
+<RadzenCard>
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Search</RadzenText>
+    <RadzenTextBox Placeholder="start typing..." @oninput=@(args => OnSearchChangeAsync(args.Value.ToString())) class="w-100" />
+</RadzenCard>
+
+<RadzenDataGrid FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                Data="@Items" TItem="UserDto" RowClick="OnRowClick">
+    <Columns>
+        <RadzenDataGridColumn TItem="UserDto" Property="Username" Title="Username"></RadzenDataGridColumn>
+        @* <RadzenDataGridColumn TItem="UserDto">
+        <Template Context="user">
+        <RadzenButton Size="ButtonSize.ExtraSmall" Text="Add to chat" ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat"
+        Shade="Shade.Lighter" Icon="accessibility" class="m-1" />
+        </Template>
+        </RadzenDataGridColumn> *@
+    </Columns>
+</RadzenDataGrid>
+
+<RadzenPager HorizontalAlign="HorizontalAlign.Right" Count="Count" PageSize="5" PageNumbersCount="5" PageChanged="@PageChanged" />

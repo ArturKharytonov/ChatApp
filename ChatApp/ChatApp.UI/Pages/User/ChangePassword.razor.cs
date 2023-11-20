@@ -1,13 +1,12 @@
-﻿using ChatApp.Application.AuthenticationService.Interfaces;
-using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
+using IAuthenticationService = ChatApp.UI.Services.AuthenticationService.Interfaces.IAuthenticationService;
 
 namespace ChatApp.UI.Pages.User
 {
     public partial class ChangePassword
     {
         private readonly ChangePasswordDto _changePasswordDto = new();
-        [Inject] private NavigationManager _navigationManager { get; set; }
         private string Error;
         private bool _showErrors;
         private bool _showMessage;

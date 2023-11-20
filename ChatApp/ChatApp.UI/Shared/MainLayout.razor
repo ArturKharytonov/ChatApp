@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @using ChatApp.UI.Pages
-
+<RadzenNotification />
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -10,7 +10,11 @@
             <LoginDisplay></LoginDisplay>
         </div>
         <article class="content px-4">
-            @Body
+            <CascadingValue Value="SignalRService">
+                @Body
+            </CascadingValue>
         </article>
     </main>
 </div>
+
+

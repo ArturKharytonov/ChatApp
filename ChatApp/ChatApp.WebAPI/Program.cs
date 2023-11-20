@@ -1,35 +1,35 @@
 using System.Security.Claims;
 using System.Text;
-using ChatApp.Domain.DTOs.MessageDto;
-using ChatApp.Domain.DTOs.RoomDto;
+using ChatApp.Application.Services.JwtHandler;
+using ChatApp.Application.Services.JwtHandler.Interfaces;
+using ChatApp.Application.Services.MessageService;
+using ChatApp.Application.Services.MessageService.Interfaces;
+using ChatApp.Application.Services.QueryBuilder;
+using ChatApp.Application.Services.QueryBuilder.Interfaces;
+using ChatApp.Application.Services.RoomService;
+using ChatApp.Application.Services.RoomService.Interfaces;
+using ChatApp.Application.Services.UserContext;
+using ChatApp.Application.Services.UserContext.Interfaces;
+using ChatApp.Application.Services.UserService;
+using ChatApp.Application.Services.UserService.Interfaces;
 using ChatApp.Domain.Mapping;
-using ChatApp.Domain.Messages;
-using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
 using ChatApp.Persistence.Context;
-using ChatApp.WebAPI.Services.JwtHandler;
-using ChatApp.WebAPI.Services.JwtHandler.Interfaces;
-using ChatApp.WebAPI.Services.QueryBuilder.Interfaces;
-using ChatApp.WebAPI.Services.QueryBuilder;
-using ChatApp.WebAPI.Services.RoomService;
-using ChatApp.WebAPI.Services.RoomService.Interfaces;
-using ChatApp.WebAPI.Services.UserService;
-using ChatApp.WebAPI.Services.UserService.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using IUserContext = ChatApp.WebAPI.Services.UserContext.Interfaces.IUserContext;
-using UserContext = ChatApp.WebAPI.Services.UserContext.UserContext;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
 using ChatApp.Persistence.UnitOfWork;
-using ChatApp.WebAPI.Services.MessageService;
-using ChatApp.WebAPI.Services.MessageService.Interfaces;
+using ChatApp.Domain.DTOs.MessageDto;
+using ChatApp.Domain.DTOs.RoomDto;
+using ChatApp.WebAPI.Hubs.Chat;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ChatDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 builder.Services.AddIdentity<User, IdentityRole<int>>()
     .AddEntityFrameworkStores<ChatDbContext>()
@@ -44,6 +44,21 @@ builder.Services
     })
     .AddJwtBearer(options =>
     {
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                // If the request is for our hub...
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/chatHub")))
+                    context.Token = accessToken;
+                
+                return Task.CompletedTask;
+            }
+        };
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -85,8 +100,10 @@ builder.Services.AddScoped<IQueryBuilder<User>, QueryBuilder<User>>();
 builder.Services.AddScoped<IQueryBuilder<RoomDto>, QueryBuilder<RoomDto>>();
 builder.Services.AddScoped<IQueryBuilder<MessageDto>, QueryBuilder<MessageDto>>();
 
-
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+builder.Services.AddSignalR();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -137,4 +154,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<ChatHub>("/chatHub");
+
 app.Run();

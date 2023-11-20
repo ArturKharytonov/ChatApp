@@ -1,11 +1,13 @@
-﻿using ChatApp.Application.RoomApplicationService.Interfaces;
-using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
 using ChatApp.UI.Pages.Common.ComponentHelpers;
+using ChatApp.UI.Services.RoomApplicationService.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Radzen;
+using Radzen.Blazor;
+
 
 namespace ChatApp.UI.Pages.Room
 {
@@ -26,29 +28,16 @@ namespace ChatApp.UI.Pages.Room
         public bool Sorting { get; set; }
         public RoomColumnsSorting SortFieldValue { get; set; }
         public IEnumerable<RoomColumnsSorting> SortingFieldsDropDown { get; set; }
-
         [Inject] private IRoomApplicationService RoomApplicationService { get; set; }
+
 
         protected override async Task OnInitializedAsync()
         {
             ReadFromUrl();
-
             SortingFieldsDropDown = Enum.GetValues(typeof(RoomColumnsSorting)).Cast<RoomColumnsSorting>().ToList();
-
             var response = await GetItems(CurrentPage);
-
-            if (response == null)
-            {
-                NavigationManager.NavigateTo("/logout");
-
-                StateHasChanged();
-            }
-
-            else
-            {
-                Items = response.Items;
-                Count = response.TotalCount;
-            }
+            Items = response.Items;
+            Count = response.TotalCount;
         }
 
         public async Task<GridModelResponse<RoomDto>?> GetItems(int pageNumber)
@@ -120,5 +109,18 @@ namespace ChatApp.UI.Pages.Room
             Items = response.Items;
             Count = response.TotalCount;
         }
+
+        private void OnRowClick(DataGridRowMouseEventArgs<RoomDto> args)
+        {
+            var selectedRoom = args.Data;
+
+            NavigationManager.NavigateTo($"/chat/{selectedRoom.Id}");
+        }
+
+        private void ShowInlineDialog()
+        {
+            NavigationManager.NavigateTo("/createroom");
+        }
     }
 }
+

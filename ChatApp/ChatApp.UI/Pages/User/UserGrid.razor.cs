@@ -1,11 +1,15 @@
-﻿using ChatApp.Application.UserApplicationService.Interfaces;
-using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Domain.DTOs.UserDto;
+﻿using ChatApp.Domain.DTOs.Http;
 using Microsoft.AspNetCore.Components;
 using Radzen;
-using ChatApp.Domain.Enums;
 using ChatApp.UI.Pages.Common.ComponentHelpers;
+using ChatApp.Domain.DTOs.UserDto;
+using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.Enums;
+using ChatApp.Domain.DTOs.RoomDto;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
+using ChatApp.UI.Services.UserApplicationService.Interfaces;
+using IAuthenticationService = ChatApp.UI.Services.AuthenticationService.Interfaces.IAuthenticationService;
 
 namespace ChatApp.UI.Pages.User
 {
@@ -27,29 +31,21 @@ namespace ChatApp.UI.Pages.User
         public UserColumnsSorting SortFieldValue { get; set; }
         public IEnumerable<UserColumnsSorting> SortingFieldsDropDown { get; set; }
 
-        [Inject] public IUserApplicationService UserApplicationService { get; set; }
+        [CascadingParameter] private Task<AuthenticationState> authenticationStateTask { get; set; }
+        private string _userName;
 
+        [Inject] public IUserApplicationService UserApplicationService { get; set; }
+        [Inject] protected IAuthenticationService _authenticationService { get; set; }
         protected override async Task OnInitializedAsync()
         {
+            var authenticationState = await authenticationStateTask;
+            _userName = authenticationState.User.FindFirst(ClaimTypes.Name)?.Value;
+
             ReadFromUrl();
-
             SortingFieldsDropDown = Enum.GetValues(typeof(UserColumnsSorting)).Cast<UserColumnsSorting>().ToList();
-
             var response = await GetItems(CurrentPage);
-
-            if (response == null)
-            {
-                NavigationManager.NavigateTo("/logout");
-
-                StateHasChanged();
-            }
-
-            else
-            {
-
-                Items = response.Items;
-                Count = response.TotalCount;
-            }
+            Items = response.Items;
+            Count = response.TotalCount;
         }
 
         public async Task<GridModelResponse<UserDto>?> GetItems(int pageNumber)

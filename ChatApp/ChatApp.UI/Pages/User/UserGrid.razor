@@ -1,6 +1,7 @@
 ﻿@page "/grid"
-@using ChatApp.Domain.DTOs.UserDto
 @using ChatApp.Domain.Enums
+@using ChatApp.Domain.DTOs.UserDto
+
 
 @attribute [Authorize]
 
@@ -32,6 +33,14 @@
         <RadzenDataGridColumn TItem="UserDto" Property="Username" Title="Username"></RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="UserDto" Property="Email" Title="Email"></RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="UserDto" Property="PhoneNumber" Title="PhoneNumber"></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="UserDto">
+            <Template Context="user">
+                @if (user.Username != _userName)
+                {
+                    <RadzenButton Text="Add to friends" ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="accessibility" class="m-1" />
+                }
+            </Template>
+        </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 

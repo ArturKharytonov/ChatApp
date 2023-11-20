@@ -14,26 +14,21 @@ public partial class ChatDbContext : IdentityDbContext<User, IdentityRole<int>, 
     public ChatDbContext() { }
 
     public ChatDbContext(DbContextOptions<ChatDbContext> options)
-        : base(options) { }
+        : base(options){}
+
 
     public virtual DbSet<Domain.Friends.Friend> Friends { get; set; }
-
     public virtual DbSet<Message> Messages { get; set; }
-
     public virtual DbSet<Room> Rooms { get; set; }
-
     public virtual DbSet<User> AspNetUsers { get; set; }
 
-    public virtual DbSet<UsersAndRoom> UsersAndRooms { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new FriendConfiguration());
         modelBuilder.ApplyConfiguration(new MessageConfiguration());
         modelBuilder.ApplyConfiguration(new RoomConfiguration());
-        modelBuilder.ApplyConfiguration(new UserAndRoomConfiguration());
-
-        OnModelCreatingPartial(modelBuilder);
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 

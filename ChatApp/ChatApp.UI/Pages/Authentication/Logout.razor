@@ -1,13 +1,26 @@
 ﻿@page "/logout"
-@using ChatApp.Application.AuthenticationService.Interfaces
+@using IAuthenticationService = ChatApp.UI.Services.AuthenticationService.Interfaces.IAuthenticationService
+@using ChatApp.UI.Services.SignalRService.Interfaces
 @inject IAuthenticationService AuthenticationService
 @inject NavigationManager NavigationManager
-<h3>Logout</h3>
+
+<h3>Are you sure that you want to logout</h3>
+<RadzenButton Click=@OnSubmitClick Text="Submit" ButtonStyle="ButtonStyle.Primary" />
+<RadzenButton Click=@OnDeclineClick Text="Decline" ButtonStyle="ButtonStyle.Danger" />
+
 
 @code {
-    protected override async Task OnInitializedAsync()
+    [CascadingParameter]
+    protected ISignalRService SignalRService { get; set; }
+
+    private async Task OnSubmitClick()
     {
+        await SignalRService.StopConnection();
         await AuthenticationService.LogoutAsync();
+        NavigationManager.NavigateTo("/");
+    }
+    private void OnDeclineClick()
+    {
         NavigationManager.NavigateTo("/");
     }
 }

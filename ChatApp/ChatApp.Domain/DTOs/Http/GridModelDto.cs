@@ -2,11 +2,11 @@
 
 namespace ChatApp.Domain.DTOs.Http
 {
-    public class GridModelDto<T> 
+    public class GridModelDto<T>
         where T : Enum
     {
-        [SupplyParameterFromQuery] 
-        [Parameter] 
+        [SupplyParameterFromQuery]
+        [Parameter]
         public int PageNumber { get; set; }
         [SupplyParameterFromQuery]
         [Parameter]
@@ -16,7 +16,7 @@ namespace ChatApp.Domain.DTOs.Http
         public T? Column { get; set; }
         [SupplyParameterFromQuery]
         [Parameter]
-        public bool Asc { get; set; } 
+        public bool Asc { get; set; }
         [SupplyParameterFromQuery]
         [Parameter]
         public bool Sorting { get; set; }

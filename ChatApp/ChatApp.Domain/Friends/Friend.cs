@@ -1,8 +1,9 @@
-﻿using ChatApp.Domain.Users;
+﻿using ChatApp.Domain.Common;
+using ChatApp.Domain.Users;
 
 namespace ChatApp.Domain.Friends;
 
-public partial class Friend
+public class Friend : IDbEntity<int>
 {
     public int Id { get; set; }
 
