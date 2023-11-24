@@ -16,9 +16,9 @@ namespace ChatApp.Tests.Presentation.Tests
     public class UserControllerTests : IClassFixture<UserControllerFixture>
     {
         private readonly UserControllerFixture _fixture;
-        public UserControllerTests()
+        public UserControllerTests(UserControllerFixture fixture)
         {
-            _fixture = new UserControllerFixture();
+            _fixture = fixture;
         }
 
         [Theory]

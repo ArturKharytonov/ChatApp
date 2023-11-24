@@ -11,9 +11,9 @@ namespace ChatApp.Tests.Presentation.Tests
     public class MessageControllerTests : IClassFixture<MessageControllerFixture>
     {
         private readonly MessageControllerFixture _fixture;
-        public MessageControllerTests()
+        public MessageControllerTests(MessageControllerFixture fixture)
         {
-            _fixture = new MessageControllerFixture();
+            _fixture = fixture;
         }
 
         [Fact]

@@ -12,9 +12,9 @@ namespace ChatApp.Tests.Application.Tests
     {
         private readonly JwtServiceFixture _fixture;
 
-        public JwtServiceTests()
+        public JwtServiceTests(JwtServiceFixture fixture)
         {
-            _fixture = new JwtServiceFixture();
+            _fixture = fixture;
         }
 
         [Theory]

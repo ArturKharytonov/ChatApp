@@ -10,6 +10,9 @@ using ChatApp.Domain.Rooms;
 using ChatApp.Tests.Fixtures.Setups;
 using ChatApp.Tests.Fixtures.Setups.Interfaces;
 using ChatApp.Domain.DTOs.Http;
+using ChatApp.Application.Services.QueryBuilder;
+using ChatApp.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Tests.Fixtures.Services
 {
@@ -26,6 +29,7 @@ namespace ChatApp.Tests.Fixtures.Services
         public readonly IRepositoryMockSetup<User, int> UserRepoMockSetup;
         public readonly IRepositoryMockSetup<Room, int> RoomRepoMockSetup;
 
+        private readonly IQueryBuilder<User> _queryBuilder;
         public UserServiceFixture()
         {
             UserManagerMock = new Mock<UserManager<User>>(
@@ -39,6 +43,8 @@ namespace ChatApp.Tests.Fixtures.Services
 
             RoomRepoMockSetup = new RepositoryMockSetup<Room, int>();
             UserRepoMockSetup = new RepositoryMockSetup<User, int>();
+            _queryBuilder = new QueryBuilder<User>();
+
         }
 
         public void Dispose() { }
@@ -90,5 +96,23 @@ namespace ChatApp.Tests.Fixtures.Services
                 .ReturnsAsync(IdentityResult.Success);
         }
 
+        public void SetupUsersPageService(IQueryable<User> users)
+        {
+            var mockSet = new Mock<DbSet<User>>();
+            mockSet.As<IQueryable<User>>().Setup(m => m.Provider).Returns(users.Provider);
+            mockSet.As<IQueryable<User>>().Setup(m => m.Expression).Returns(users.Expression);
+            mockSet.As<IQueryable<User>>().Setup(m => m.ElementType).Returns(users.ElementType);
+            mockSet.As<IQueryable<User>>().Setup(m => m.GetEnumerator()).Returns(users.GetEnumerator());
+
+            UserManagerMock.Setup(u => u.Users).Returns(mockSet.Object);
+
+            QueryBuilderMock
+                .Setup(q => q.SearchQuery(It.IsAny<string>(), Enum.GetNames(typeof(UserColumnsSorting))))
+                .Returns((string searchValue, string[] columns) => _queryBuilder.SearchQuery(searchValue, columns));
+
+            QueryBuilderMock
+                .Setup(q => q.OrderByQuery(It.IsAny<IQueryable<User>>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Returns((IQueryable<User> query, string sortColumn, bool ascOrder) => _queryBuilder.OrderByQuery(query, sortColumn, ascOrder));
+        }
     }
 }

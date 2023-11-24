@@ -12,9 +12,9 @@ namespace ChatApp.Tests.Presentation.Tests
     {
         private readonly RoomControllerFixture _fixture;
 
-        public RoomControllerTests()
+        public RoomControllerTests(RoomControllerFixture fixture)
         {
-            _fixture = new RoomControllerFixture();
+            _fixture = fixture;
         }
 
         [Theory]

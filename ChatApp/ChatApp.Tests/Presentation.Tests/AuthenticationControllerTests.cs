@@ -14,9 +14,9 @@ namespace ChatApp.Tests.Presentation.Tests
     public class AuthenticationControllerTests : IClassFixture<AuthenticationControllerFixture>
     {
         private readonly AuthenticationControllerFixture _fixture;
-        public AuthenticationControllerTests()
+        public AuthenticationControllerTests(AuthenticationControllerFixture fixture)
         {
-            _fixture = new AuthenticationControllerFixture();
+            _fixture = fixture;
         }
 
         [Theory]

@@ -15,6 +15,9 @@ using System.Xml;
 using ChatApp.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using System;
+using ChatApp.Application.Services.QueryBuilder;
+using ChatApp.Application.Services.QueryBuilder.Interfaces;
+using FluentAssertions;
 using MockQueryable.Moq;
 
 namespace ChatApp.Tests.Application.Tests
@@ -23,9 +26,9 @@ namespace ChatApp.Tests.Application.Tests
     {
 
         private readonly UserServiceFixture _fixture;
-        public UserServiceTests()
+        public UserServiceTests(UserServiceFixture fixture)
         {
-            _fixture = new UserServiceFixture();
+            _fixture = fixture;
         }
 
         [Theory]
@@ -140,79 +143,27 @@ namespace ChatApp.Tests.Application.Tests
         }
 
 
-        [Theory] // bug fix
-        [InlineData("", UserColumnsSorting.UserName, true, 0)]
-        [InlineData("user1", UserColumnsSorting.Email, false, 1)]
+        [Theory]
+        [InlineData("123", UserColumnsSorting.UserName, true, 1)]
         public async Task GetUsersPageAsync_ReturnsExpectedResults(
         string searchTerm, UserColumnsSorting column, bool asc, int pageNumber)
         {
-            // Arrange
             var data = new GridModelDto<UserColumnsSorting>
             {
                 Data = searchTerm,
                 Column = column,
                 Asc = asc,
                 PageNumber = pageNumber,
+                Sorting = true
             };
-
             var users = new List<User>
             {
-                new() { Id = 1, UserName = "user1", Email = "user1@example.com" },
-                new() { Id = 2, UserName = "user2", Email = "user2@example.com" },
-            };
+                new() { Id = 3, UserName = "user5", Email = "user1@example.com", PhoneNumber = "1234567890" },
+                new() { Id = 2, UserName = "user2", Email = "user2@example.com", PhoneNumber = "9876543210" },
+                new() { Id = 1, UserName = "user1", Email = "user1@example.com", PhoneNumber = "4567890123" }
+            }.AsQueryable();
+            _fixture.SetupUsersPageService(users);
 
-            var mock = users.BuildMock();
-
-            _fixture.UserManagerMock.Setup(m => m.Users).Returns(mock);
-            _fixture.QueryBuilderMock
-                .Setup(q => q.SearchQuery(It.IsAny<string>(), Enum.GetNames(data.Column.GetType())))
-                .Returns((string searchValue, string[] columns) =>
-                {
-                    var parameter = Expression.Parameter(typeof(User), "x");
-
-                    Expression? expression = null;
-
-                    foreach (var name in columns)
-                    {
-                        var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-
-                        var property = Expression.Property(parameter, name);
-                        var propertyAsObject = Expression.Convert(property, typeof(object));
-                        var nullCheck = Expression.ReferenceEqual(propertyAsObject, Expression.Constant(null));
-
-                        Expression stringify = property.Type == typeof(string)
-                            ? property
-                            : Expression.Call(property, property.Type.GetMethod("ToString", Type.EmptyTypes));
-
-                        var containsCall = Expression.Call(stringify, containsMethod, Expression.Constant(searchValue));
-                        var conditionalExpression = Expression.Condition(nullCheck, Expression.Constant(false), containsCall);
-
-                        if (expression == null)
-                            expression = conditionalExpression;
-                        else
-                            expression = Expression.OrElse(expression, conditionalExpression);
-                    }
-                    var lambda = Expression.Lambda<Func<User, bool>>(expression!, parameter);
-                    return lambda;
-                });
-
-            _fixture.QueryBuilderMock
-                .Setup(q => q.OrderByQuery(It.IsAny<IQueryable<User>>(),
-                    It.IsAny<string>(), It.IsAny<bool>()))
-                .Returns((IQueryable<User> query, string column, bool ascOrder) =>
-                {
-                    var type = typeof(User);
-                    var property = type.GetProperty(column);
-                    var parameter = Expression.Parameter(type, "p");
-                    var propertyAccess = Expression.MakeMemberAccess(parameter, property);
-                    var orderByExpression = Expression.Lambda(propertyAccess, parameter);
-
-                    var command = ascOrder ? "OrderBy" : "OrderByDescending";
-                    var resultExpression = Expression.Call(typeof(Queryable), command, new Type[] { type, property.PropertyType },
-                        query.Expression, Expression.Quote(orderByExpression));
-
-                    return query.Provider.CreateQuery<User>(resultExpression);
-                });
             // Act
             var result = await _fixture.UserService.GetUsersPageAsync(data);
 
@@ -220,6 +171,7 @@ namespace ChatApp.Tests.Application.Tests
             Assert.NotNull(result);
             Assert.IsType<GridModelResponse<UserDto>>(result);
             Assert.True(result.Items.Count() <= _fixture.PageSize);
+            result.Items.Should().BeInAscendingOrder(p => p.Username);
         }
     }
 }

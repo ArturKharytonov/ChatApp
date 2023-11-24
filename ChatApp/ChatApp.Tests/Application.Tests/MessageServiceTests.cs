@@ -1,22 +1,26 @@
 ﻿using System.Linq.Expressions;
-using ChatApp.Application.Services.MessageService;
-using ChatApp.Application.Services.QueryBuilder.Interfaces;
+using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.MessageDto;
+using ChatApp.Domain.Enums;
 using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
 using ChatApp.Tests.Fixtures.Services;
+using Microsoft.EntityFrameworkCore;
+using MockQueryable.Moq;
 using Moq;
 using Message = ChatApp.Domain.Messages.Message;
+using ChatApp.Domain.DTOs.UserDto;
+using FluentAssertions;
 
 namespace ChatApp.Tests.Application.Tests
 {
     public class MessageServiceTests : IClassFixture<MessageServiceFixture>
     {
         private readonly MessageServiceFixture _fixture;
-        public MessageServiceTests()
+        public MessageServiceTests(MessageServiceFixture fixture)
         {
-            _fixture = new MessageServiceFixture();
+            _fixture = fixture;
         }
 
         [Theory]
@@ -147,60 +151,36 @@ namespace ChatApp.Tests.Application.Tests
         }
 
 
-        [Fact] // bug: fix
-        public async Task GetMessagePageAsync_ShouldReturnCorrectGridModelResponse()
+        [Theory] // BUG FIX
+        [InlineData("Message", MessageColumnsSorting.SenderUsername, true, 1)] // With search term, sort by SenderUsername in ascending order
+        public async Task GetMessagePageAsync_ReturnsExpectedResults(
+        string searchTerm, MessageColumnsSorting column, bool asc, int pageNumber)
         {
-            //// Arrange
-            //_queryBuilderMock.Setup(qb => qb.SearchQuery(It.IsAny<string>(), It.IsAny<string[]>()))
-            //               .Returns<Expression<Func<MessageDto, bool>>>(expr => m => true);
+            var data = new GridModelDto<MessageColumnsSorting>
+            {
+                Data = searchTerm,
+                Column = column,
+                Asc = asc,
+                PageNumber = pageNumber,
+                Sorting = true
+            };
 
-            //_queryBuilderMock.Setup(qb => qb.OrderByQuery(It.IsAny<IQueryable<MessageDto>>(), It.IsAny<string>(), It.IsAny<bool>()))
-            //               .Returns<IQueryable<MessageDto>, string, bool>((query, column, asc) => query); // Mock order by query to return the same query for testing
+            var messages = new List<Message>
+            {
+                new() { Id = 2, Content = "Message2", SentAt = DateTime.UtcNow, SenderId = 2, RoomId = 2 },
+                new() { Id = 1, Content = "Message1", SentAt = DateTime.UtcNow, SenderId = 1, RoomId = 1 }
+            }.AsQueryable();
 
-            //var data = new GridModelDto<MessageColumnsSorting>
-            //{
-            //    PageNumber = 1,
-            //    Data = "yourSearchTerm",
-            //    Column = MessageColumnsSorting.RoomName, 
-            //    Asc = true,
-            //    Sorting = true
-            //};
+            _fixture.SetupMessagesPageService(messages);
 
-            //var roomList = new List<Room>
-            //{
-            //    new Room { Id = 1, Name = "Room1" },
-            //    new Room { Id = 2, Name = "Room2" },
-            //};
+            // Act
+            var result = await _fixture.MessageService.GetMessagePageAsync(data);
 
-            //var messageList = new List<Message>
-            //{
-            //    new Message { Id = 1, Content = "Message1", SentAt = DateTime.Now, SenderId = 1, RoomId = 1 },
-            //    new Message { Id = 2, Content = "Message2", SentAt = DateTime.Now, SenderId = 2, RoomId = 2 },
-            //};
-
-            //_messageRepositoryMock.Setup(m => m.GetAllAsQueryableAsync())
-            //    .ReturnsAsync(messageList.AsQueryable());
-
-            //_userManagerMock.Setup(um => um.FindByIdAsync(It.IsAny<string>()))
-            //               .ReturnsAsync(new User() { UserName = "testuser" }); // Replace with an actual user instance
-
-            //_roomRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
-            //    .ReturnsAsync((int id) => roomList.FirstOrDefault(r => r.Id == id));
-
-            //// Act
-            //var result = await _messageService.GetMessagePageAsync(data);
-
-            //// Assert
-            //Assert.NotNull(result);
-            //Assert.NotNull(result.Items);
-            //Assert.Equal(1, result.Items.Count());
-            //Assert.Equal(messageList.Count, result.TotalCount);
-
-            //_queryBuilderMock.Verify(qb =>
-            //    qb.SearchQuery("yourSearchTerm", It.IsAny<string[]>()), Times.Once);
-            //_queryBuilderMock.Verify(qb =>
-            //    qb.OrderByQuery(It.IsAny<IQueryable<MessageDto>>(), "RoomName", true), Times.Once);
+            // Assert
+            Assert.NotNull(result);
+            Assert.IsType<GridModelResponse<MessageDto>>(result);
+            Assert.True(result.Items.Count() <= _fixture.PageSize);
+            result.Items.Should().BeInAscendingOrder(p => p.Content);
         }
-
     }
 }
