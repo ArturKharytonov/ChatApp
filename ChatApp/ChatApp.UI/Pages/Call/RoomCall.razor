@@ -1,9 +1,82 @@
 ﻿@page "/roomcall/{id}"
+@using ChatApp.UI.Services.RtcService.Interfaces
+
+
+<div class="container">
+    <div class="row">
+        <video class="col col-lg-6 p-0" id="localVideo" autoplay playsinline></video>
+        <video class="col col-lg-6 p-0" id="remoteVideo" autoplay playsinline></video>
+    </div>
+</div>
+
+<div class="py-4">
+    <div class="button-container">
+        <RadzenButton id="hangupButton" Click="HangupAction">Leave</RadzenButton>
+    </div>
+</div>
 
 
 @code {
+    [Inject]
+    IWebRtcService RtcService { get; set; }
+    [Inject]
+    IJSRuntime Js { get; set; }
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+    [Inject]
+    NotificationService NotificationService { get; set; } = null!;
+
+    protected IJSObjectReference? _module;
+    protected IJSObjectReference? _stream;
+
     [Parameter]
     public string Id { get; set; }
 
+    protected string _channel => $"video-{Id}";
 
+    protected override async Task OnInitializedAsync()
+    {
+        _module = await Js.InvokeAsync<IJSObjectReference>(
+               "import", "./Pages/Call/RoomCall.razor.js");
+        await RtcService.Join(_channel);
+        NavigationManager.LocationChanged += LocationChanged;
+
+        await StartAction();
+        await base.OnInitializedAsync();
+
+        await RtcService.ConfirmationResponse(_channel);
+    }
+    protected async Task StartAction()
+    {
+        if (string.IsNullOrWhiteSpace(_channel)) return;
+        if (_module == null) throw new InvalidOperationException();
+        var stream = await RtcService.StartLocalStream();
+        _stream = stream;
+        await _module.InvokeVoidAsync("setLocalStream", stream);
+        RtcService.OnRemoteStreamAcquired += RtcOnOnRemoteStreamAcquired;
+        await Console.Out.WriteLineAsync("Video added");
+    }
+
+    protected async void RtcOnOnRemoteStreamAcquired(object? _, IJSObjectReference e)
+    {
+        if (_module == null) throw new InvalidOperationException();
+        await _module.InvokeVoidAsync("setRemoteStream", e);
+        StateHasChanged();
+    }
+
+    protected async Task HangupAction()
+    {
+        await RtcService.Hangup();
+        await _module.InvokeVoidAsync("setRemoteStreamToNull", _stream);
+        NavigationManager.NavigateTo("/");
+    }
+
+    async void LocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        await RtcService.Hangup();
+        NavigationManager.LocationChanged -= LocationChanged;
+        await _module.InvokeVoidAsync("stopCameraAndMic", _stream);
+        NavigationManager.NavigateTo("/");
+    }
 }
+

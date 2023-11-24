@@ -42,20 +42,19 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var room = await RoomApplicationService.GetRoomAsync(Id);
+        _room = await RoomApplicationService.GetRoomAsync(Id);
 
-        if (room.Name.IsNullOrEmpty())
+        if (_room.Name.IsNullOrEmpty())
         {
             NavigationManager.NavigateTo($"/chat/{Id}");
             return;
         }
-        _room = room;
+
         _currentUser = await UserApplicationService.GetUserAsync();
 
         await SignalRService.AddToCall(_room.Name, _currentUser);
         SignalRService.OnParticipantsUpdate += OnListUpdate;
     }
-
     private async Task OnLeaveClick()
     {
         await SignalRService.LeaveFromCall(_room.Name, _currentUser);
@@ -64,7 +63,6 @@
         SignalRService.OnParticipantsUpdate -= OnListUpdate;
         NavigationManager.NavigateTo("/");
     }
-
     private void OnListUpdate(List<UserDto> users)
     {
         ParticipantsList = users;

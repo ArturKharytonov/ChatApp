@@ -27,19 +27,23 @@ namespace ChatApp.WebAPI.Controllers
         [HttpGet("page")]
         public async Task<IActionResult> GetRooms([FromQuery] GridModelDto<RoomColumnsSorting> model)
         {
-            int.TryParse(_userContext.GetUserId(), out var id);
-            return Ok(await _roomService.GetRoomsPageAsync(id, model));
+            if (int.TryParse(_userContext.GetUserId(), out var id))
+                return Ok(await _roomService.GetRoomsPageAsync(id, model));
+            return BadRequest();
         }
 
         [HttpGet("creating")]
         public async Task<IActionResult> CreateRoom([FromQuery] string roomName)
         {
             var id = _userContext.GetUserId();
+            if (string.IsNullOrEmpty(id)) 
+                return BadRequest(new AddRoomResponseDto { WasAdded = false });
+
             var roomId = await _roomService.CreateRoom(roomName, id);
 
             if (roomId.HasValue)
                 return Ok(new AddRoomResponseDto { WasAdded = true, CreatedRoomId = roomId });
-            
+
 
             return BadRequest(new AddRoomResponseDto{WasAdded = false});
         }

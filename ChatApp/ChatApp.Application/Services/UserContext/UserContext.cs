@@ -1,8 +1,9 @@
 ﻿using System.Security.Claims;
+using ChatApp.Application.Services.UserContext.Interfaces;
 
 namespace ChatApp.Application.Services.UserContext
 {
-    public class UserContext : Interfaces.IUserContext
+    public class UserContext : IUserContext
     {
         private readonly ClaimsPrincipal _user;
         public UserContext(ClaimsPrincipal user)

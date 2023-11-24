@@ -7,6 +7,8 @@ using ChatApp.UI.Services.MessageApplicationService;
 using ChatApp.UI.Services.MessageApplicationService.Interfaces;
 using ChatApp.UI.Services.RoomApplicationService;
 using ChatApp.UI.Services.RoomApplicationService.Interfaces;
+using ChatApp.UI.Services.RtcService;
+using ChatApp.UI.Services.RtcService.Interfaces;
 using ChatApp.UI.Services.SignalRService;
 using ChatApp.UI.Services.SignalRService.Interfaces;
 using ChatApp.UI.Services.UserApplicationService;
@@ -37,6 +39,7 @@ builder.Services.AddScoped<IRoomApplicationService, RoomApplicationService>();
 builder.Services.AddScoped<IUserApplicationService, UserApplicationService>();
 builder.Services.AddScoped<IHttpClientPwa, HttpClientPwa>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<IWebRtcService, WebRtcService>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 

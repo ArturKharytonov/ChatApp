@@ -24,6 +24,7 @@ using ChatApp.Persistence.UnitOfWork.Interfaces;
 using ChatApp.Persistence.UnitOfWork;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.DTOs.RoomDto;
+using ChatApp.WebAPI.Hubs.Call;
 using ChatApp.WebAPI.Hubs.Chat;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -156,5 +157,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<CallHub>("/callHub");
 
 app.Run();
