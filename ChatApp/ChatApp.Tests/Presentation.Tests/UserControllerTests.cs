@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ChatApp.Application.Services.UserContext.Interfaces;
+﻿using ChatApp.Application.Services.UserContext.Interfaces;
 using ChatApp.Application.Services.UserService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
@@ -11,23 +6,19 @@ using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
+using ChatApp.Tests.Fixtures.Controllers;
 using ChatApp.WebAPI.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
 namespace ChatApp.Tests.Presentation.Tests
 {
-    public class UserControllerTests
+    public class UserControllerTests : IClassFixture<UserControllerFixture>
     {
-        private readonly Mock<IUserService> _userServiceMock;
-        private readonly Mock<IUserContext> _userContextMock;
-        private readonly UserController _userController;
-
+        private readonly UserControllerFixture _fixture;
         public UserControllerTests()
         {
-            _userContextMock = new Mock<IUserContext>();
-            _userServiceMock = new Mock<IUserService>();
-            _userController = new UserController(_userServiceMock.Object, _userContextMock.Object);
+            _fixture = new UserControllerFixture();
         }
 
         [Theory]
@@ -36,11 +27,11 @@ namespace ChatApp.Tests.Presentation.Tests
         public async Task AddUserToGroup_ReturnsExpectedResult(bool addUserResult, bool expectOkResult)
         {
             // Arrange
-            _userServiceMock.Setup(service => service.AddUserToRoomAsync(It.IsAny<AddUserToRoomDto>()))
+            _fixture.UserServiceMock.Setup(service => service.AddUserToRoomAsync(It.IsAny<AddUserToRoomDto>()))
                 .ReturnsAsync(addUserResult);
 
             // Act
-            var result = await _userController.AddUserToGroup(new AddUserToRoomDto());
+            var result = await _fixture.UserController.AddUserToGroup(new AddUserToRoomDto());
 
             // Assert
             if (expectOkResult)
@@ -63,7 +54,7 @@ namespace ChatApp.Tests.Presentation.Tests
         {
             // Arrange
             var userIdClaim = "1";
-            _userContextMock.Setup(context => context.GetUserId())
+            _fixture.UserContextMock.Setup(context => context.GetUserId())
                 .Returns(userIdClaim);
 
             var user = userExists
@@ -71,22 +62,22 @@ namespace ChatApp.Tests.Presentation.Tests
                 {
                     Id = 1,
                     Rooms = expectedGroupCount > 0
-                    ? new List<Room>
-                    {
-                        new Room
+                        ? new List<Room>
                         {
-                            Id = 1,
+                            new Room
+                            {
+                                Id = 1,
+                            }
                         }
-                    }
-                    : new List<Room>()
+                        : new List<Room>()
                 }
                 : null;
 
-            _userServiceMock.Setup(service => service.GetWithAll(userIdClaim))
+            _fixture.UserServiceMock.Setup(service => service.GetWithAll(userIdClaim))
                 .ReturnsAsync(user);
 
             // Act
-            var result = await _userController.GetUserGroupsAsync();
+            var result = await _fixture.UserController.GetUserGroupsAsync();
 
             // Assert
             if (userExists)
@@ -108,14 +99,14 @@ namespace ChatApp.Tests.Presentation.Tests
             bool expectUserRetrieval)
         {
             // Arrange
-            _userContextMock.Setup(context => context.GetUserId())
+            _fixture.UserContextMock.Setup(context => context.GetUserId())
                 .Returns(userIdClaim);
 
 
-            _userServiceMock.Setup(service => service.GetUserAsync(userIdClaim))
+            _fixture.UserServiceMock.Setup(service => service.GetUserAsync(userIdClaim))
                 .ReturnsAsync(new User());
 
-            var controller = new UserController(_userServiceMock.Object, _userContextMock.Object);
+            var controller = new UserController(_fixture.UserServiceMock.Object, _fixture.UserContextMock.Object);
 
             // Act
             var result = await controller.GetUserAsync();
@@ -129,7 +120,7 @@ namespace ChatApp.Tests.Presentation.Tests
                 var user = Assert.IsType<User>(okObjectResult.Value);
 
                 Assert.NotNull(user);
-                _userServiceMock.Verify(service => service.GetUserAsync(userIdClaim), Times.Once);
+                _fixture.UserServiceMock.Verify(service => service.GetUserAsync(userIdClaim), Times.Once);
             }
             else
             {
@@ -148,11 +139,11 @@ namespace ChatApp.Tests.Presentation.Tests
         public async Task ChangeUserCredentials_ReturnsExpectedResult(bool updateSuccessful, Type expectedResponseType)
         {
             // Arrange
-            _userServiceMock.Setup(service => service.UpdateUserAsync(It.IsAny<UserDto>()))
+            _fixture.UserServiceMock.Setup(service => service.UpdateUserAsync(It.IsAny<UserDto>()))
                 .ReturnsAsync(updateSuccessful);
 
             // Act
-            var result = await _userController.ChangeUserCredentials(new UserDto());
+            var result = await _fixture.UserController.ChangeUserCredentials(new UserDto());
 
             // Assert
             Assert.Equal(expectedResponseType, result.GetType());
@@ -179,20 +170,20 @@ namespace ChatApp.Tests.Presentation.Tests
         {
             // Arrange
 
-            _userServiceMock.Setup(service => service.GetUsersPageAsync(It.IsAny<GridModelDto<UserColumnsSorting>>()))
+            _fixture.UserServiceMock.Setup(service => service.GetUsersPageAsync(It.IsAny<GridModelDto<UserColumnsSorting>>()))
                 .ReturnsAsync(new GridModelResponse<UserDto>());
 
 
             // Act
-            var result = await _userController.GetUsersPage(new GridModelDto<UserColumnsSorting>());
+            var result = await _fixture.UserController.GetUsersPage(new GridModelDto<UserColumnsSorting>());
 
             // Assert
             var okObjectResult = Assert.IsType<OkObjectResult>(result);
-            var users = Assert.IsType<GridModelResponse<UserDto>> (okObjectResult.Value);
+            var users = Assert.IsType<GridModelResponse<UserDto>>(okObjectResult.Value);
 
             Assert.NotNull(users);
 
-            _userServiceMock.Verify(service =>
+            _fixture.UserServiceMock.Verify(service =>
                 service.GetUsersPageAsync(It.IsAny<GridModelDto<UserColumnsSorting>>()), Times.Once);
         }
     }

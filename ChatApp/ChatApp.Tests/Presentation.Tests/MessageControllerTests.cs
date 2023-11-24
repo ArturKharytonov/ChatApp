@@ -1,28 +1,21 @@
-﻿using ChatApp.Application.Services.MessageService.Interfaces;
-using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.Enums;
-using ChatApp.WebAPI.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Tests.Fixtures.Controllers;
 
 namespace ChatApp.Tests.Presentation.Tests
 {
-    public class MessageControllerTests
+    public class MessageControllerTests : IClassFixture<MessageControllerFixture>
     {
-        private readonly Mock<IMessageService> _messageService;
-        private readonly MessageController _messageController;
+        private readonly MessageControllerFixture _fixture;
         public MessageControllerTests()
         {
-            _messageService = new Mock<IMessageService>();
-            _messageController = new MessageController(_messageService.Object);
+            _fixture = new MessageControllerFixture();
         }
+
         [Fact]
         public async Task GetPageAsync_ReturnsOkResult()
         {
@@ -33,12 +26,12 @@ namespace ChatApp.Tests.Presentation.Tests
                 TotalCount = 0
             };
 
-            _messageService
+            _fixture.MessageService
                 .Setup(service => service.GetMessagePageAsync(It.IsAny<GridModelDto<MessageColumnsSorting>>()))
                 .ReturnsAsync(mockedData);
 
             // Act
-            var result = await _messageController.GetPageAsync(new GridModelDto<MessageColumnsSorting>());
+            var result = await _fixture.MessageController.GetPageAsync(new GridModelDto<MessageColumnsSorting>());
 
             // Assert
             var okObjectResult = Assert.IsType<OkObjectResult>(result);
@@ -48,7 +41,8 @@ namespace ChatApp.Tests.Presentation.Tests
             Assert.NotNull(returnedData.Items);
             Assert.Equal(0, returnedData.TotalCount);
 
-            _messageService.Verify(service => service.GetMessagePageAsync(It.IsAny<GridModelDto<MessageColumnsSorting>>()), Times.Once);
+            _fixture.MessageService.Verify(service => service.GetMessagePageAsync(It.IsAny<GridModelDto<MessageColumnsSorting>>()),
+                Times.Once);
         }
 
         [Fact]
@@ -69,13 +63,13 @@ namespace ChatApp.Tests.Presentation.Tests
                 SentAt = addMessageDto.SentAt
             };
 
-            _messageService
+            _fixture.MessageService
                 .Setup(service => service.AddMessageAsync(It.IsAny<AddMessageDto>()))
                 .ReturnsAsync(mockedMessageDto);
 
 
             // Act
-            var result = await _messageController.AddMessageAsync(addMessageDto);
+            var result = await _fixture.MessageController.AddMessageAsync(addMessageDto);
 
             // Assert
             var okObjectResult = Assert.IsType<OkObjectResult>(result);
@@ -84,7 +78,7 @@ namespace ChatApp.Tests.Presentation.Tests
             Assert.NotNull(returnedMessageDto);
             Assert.Equal(returnedMessageDto.Content, addMessageDto.Content);
 
-            _messageService.Verify(service => service.AddMessageAsync(It.IsAny<AddMessageDto>()), Times.Once);
+            _fixture.MessageService.Verify(service => service.AddMessageAsync(It.IsAny<AddMessageDto>()), Times.Once);
         }
 
 
@@ -113,12 +107,12 @@ namespace ChatApp.Tests.Presentation.Tests
                 }
             };
 
-            _messageService
+            _fixture.MessageService
                 .Setup(service => service.GetMessagesFromChat(roomId))
                 .ReturnsAsync(mockedMessages);
 
             // Act
-            var result = await _messageController.GetAllMessagesAsync(roomId);
+            var result = await _fixture.MessageController.GetAllMessagesAsync(roomId);
 
             // Assert
             var okObjectResult = Assert.IsType<OkObjectResult>(result);
@@ -126,7 +120,7 @@ namespace ChatApp.Tests.Presentation.Tests
 
             Assert.NotNull(returnedMessages);
 
-            _messageService.Verify(service => service.GetMessagesFromChat(roomId), Times.Once);
+            _fixture.MessageService.Verify(service => service.GetMessagesFromChat(roomId), Times.Once);
         }
 
         [Theory]
@@ -135,22 +129,21 @@ namespace ChatApp.Tests.Presentation.Tests
         public async Task UpdateMessageAsync_ReturnsExpectedResult(bool updateSuccess, string expectedMessage)
         {
             // Arrange
-            _messageService
+            _fixture.MessageService
                 .Setup(service => service.UpdateMessageAsync(It.IsAny<MessageDto>()))
                 .ReturnsAsync(updateSuccess);
 
             // Act
-            var result = await _messageController.UpdateMessageAsync(new MessageDto());
+            var result = await _fixture.MessageController.UpdateMessageAsync(new MessageDto());
 
             // Assert
-            _messageService.Verify(service => service.UpdateMessageAsync(It.IsAny<MessageDto>()), Times.Once);
+            _fixture.MessageService.Verify(service => service.UpdateMessageAsync(It.IsAny<MessageDto>()), Times.Once);
 
             if (updateSuccess)
             {
                 var okObjectResult = Assert.IsType<OkObjectResult>(result);
                 var updateResponseDto = Assert.IsType<UpdateMessageResponseDto>(okObjectResult.Value);
 
-                // Additional assertions based on the expected data or behavior
                 Assert.True(updateResponseDto.Successful);
                 Assert.Equal(expectedMessage, updateResponseDto.Message);
             }
@@ -159,7 +152,6 @@ namespace ChatApp.Tests.Presentation.Tests
                 var badRequestObjectResult = Assert.IsType<BadRequestObjectResult>(result);
                 var updateResponseDto = Assert.IsType<UpdateMessageResponseDto>(badRequestObjectResult.Value);
 
-                // Additional assertions based on the expected data or behavior
                 Assert.False(updateResponseDto.Successful);
                 Assert.Equal(expectedMessage, updateResponseDto.Message);
             }

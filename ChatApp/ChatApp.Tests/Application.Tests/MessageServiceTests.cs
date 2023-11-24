@@ -3,39 +3,21 @@ using ChatApp.Application.Services.MessageService;
 using ChatApp.Application.Services.QueryBuilder.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.MessageDto;
-using ChatApp.Domain.Enums;
 using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
-using ChatApp.Persistence.Common.Interfaces;
-using ChatApp.Persistence.UnitOfWork.Interfaces;
-using ChatApp.UI.Pages.User;
-using Microsoft.AspNetCore.Identity;
+using ChatApp.Tests.Fixtures.Services;
 using Moq;
 using Message = ChatApp.Domain.Messages.Message;
 
 namespace ChatApp.Tests.Application.Tests
 {
-    public class MessageServiceTests
+    public class MessageServiceTests : IClassFixture<MessageServiceFixture>
     {
-        private readonly Mock<IUnitOfWork> _unitOfWork;
-        private readonly Mock<IQueryBuilder<MessageDto>> _queryBuilderMock;
-        private readonly Mock<UserManager<User>> _userManagerMock;
-        private readonly Mock<IRepository<Message, int>> _messageRepositoryMock;
-        private readonly Mock<IRepository<Room, int>> _roomRepositoryMock;
-        private readonly MessageService _messageService;
-
+        private readonly MessageServiceFixture _fixture;
         public MessageServiceTests()
         {
-            _unitOfWork = new Mock<IUnitOfWork>();
-            _queryBuilderMock = new Mock<IQueryBuilder<MessageDto>>();
-            _userManagerMock = new Mock<UserManager<User>>(
-                Mock.Of<IUserStore<User>>(),
-                null, null, null, null, null, null, null, null);
-            _messageRepositoryMock = new Mock<IRepository<Message, int>>();
-            _roomRepositoryMock = new Mock<IRepository<Room, int>>();
-            _messageService = new MessageService(_unitOfWork.Object, _queryBuilderMock.Object, _userManagerMock.Object);
+            _fixture = new MessageServiceFixture();
         }
-
 
         [Theory]
         [InlineData("1", 1, "SenderUser", "Test message")]
@@ -57,19 +39,15 @@ namespace ChatApp.Tests.Application.Tests
                     }
                 }
             };
-            _unitOfWork
+
+            _fixture.UnitOfWork
                 .Setup(u => u.GetRepository<Room, int>())
-                .Returns(_roomRepositoryMock.Object);
+                .Returns(_fixture.RoomRepositoryMock.Object);
 
-            _roomRepositoryMock
-                .Setup(r => r.GetByIdAsync(It.IsAny<int>(),
-                    It.IsAny<Expression<Func<Room, object>>[]>()))
-                .ReturnsAsync(room);
-
-            var chatService = new MessageService(_unitOfWork.Object, _queryBuilderMock.Object, null);
+            _fixture.SetupRoomRepository(room);
 
             // Act
-            var result = await chatService.GetMessagesFromChat(roomId);
+            var result = await _fixture.MessageService.GetMessagesFromChat(roomId);
 
             // Assert
             Assert.NotNull(result);
@@ -80,6 +58,94 @@ namespace ChatApp.Tests.Application.Tests
             Assert.Equal(senderUsername, messageDto.SenderUsername);
             Assert.Equal(messageContent, messageDto.Content);
         }
+
+        [Theory]
+        [InlineData(1, "Updated Content", true)]
+        [InlineData(1, "Updated Content", false)]
+        public async Task UpdateMessageAsync_MessageExists_ReturnsProperResult(int messageId, string updatedContent, bool success)
+        {
+            // Arrange
+            var existingMessage = success
+                ? new Message
+                {
+                    Id = messageId,
+                    Content = "Original Content",
+                }
+                : null;
+
+            _fixture.UnitOfWork.Setup(u => u.GetRepository<Message, int>())
+                .Returns(_fixture.MessageRepositoryMock.Object);
+
+            _fixture.MessageRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
+                .ReturnsAsync(existingMessage);
+
+            var messageDto = new MessageDto
+            {
+                Id = messageId,
+                Content = updatedContent
+            };
+
+            // Act
+            var result = await _fixture.MessageService.UpdateMessageAsync(messageDto);
+
+            // Assert
+            if (success)
+            {
+                Assert.True(result);
+                Assert.Equal(updatedContent, existingMessage.Content);
+                _fixture.MessageRepositoryMock.Verify(r => r.Update(It.IsAny<Message>()), Times.Once);
+                _fixture.UnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
+            }
+            else
+            {
+                Assert.False(result);
+                _fixture.MessageRepositoryMock.Verify(r => r.Update(It.IsAny<Message>()), Times.Never);
+                _fixture.UnitOfWork.Verify(u => u.SaveAsync(), Times.Never);
+            }
+        }
+
+        [Theory]
+        [InlineData(1)]
+        public async Task DeleteMessageAsync_DeletesMessage(int messageIdToDelete)
+        {
+            // Arrange
+            _fixture.UnitOfWork.Setup(u => u.GetRepository<Message, int>())
+                .Returns(_fixture.MessageRepositoryMock.Object);
+
+            // Act
+            await _fixture.MessageService.DeleteMessageAsync(messageIdToDelete);
+
+            // Assert
+            _fixture.MessageRepositoryMock.Verify(r => r.DeleteAsync(messageIdToDelete), Times.Once);
+            _fixture.UnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("1", 1, "Test message", "TestUser", 1, "Test Room")]
+        public async Task AddMessageAsync_ShouldAddMessage(string userId, int roomId, string content,
+            string userName, int expectedUserId, string expectedRoomName)
+        {
+            // Arrange
+            var addMessageDto =
+                _fixture.SetupAddMessageTest(userId, roomId, content, userName, expectedUserId, expectedRoomName);
+
+            // Act
+            var result = await _fixture.MessageService.AddMessageAsync(addMessageDto);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(addMessageDto.Content, result.Content);
+            Assert.Equal(addMessageDto.SentAt, result.SentAt);
+            Assert.Equal(userName, result.SenderUsername);
+            Assert.Equal(expectedRoomName, result.RoomName);
+
+            _fixture.UnitOfWork.Verify(u => u.GetRepository<Room, int>(), Times.Once);
+            _fixture.RoomRepositoryMock.Verify(r => r.GetByIdAsync(addMessageDto.RoomId), Times.Once);
+            _fixture.UnitOfWork.Verify(u => u.GetRepository<Message, int>(), Times.Once);
+            _fixture.MessageRepositoryMock.Verify(r => r.CreateAsync(It.IsAny<Message>()), Times.Once);
+            _fixture.UnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
+        }
+
 
         [Fact] // bug: fix
         public async Task GetMessagePageAsync_ShouldReturnCorrectGridModelResponse()
@@ -112,7 +178,6 @@ namespace ChatApp.Tests.Application.Tests
             //    new Message { Id = 2, Content = "Message2", SentAt = DateTime.Now, SenderId = 2, RoomId = 2 },
             //};
 
-
             //_messageRepositoryMock.Setup(m => m.GetAllAsQueryableAsync())
             //    .ReturnsAsync(messageList.AsQueryable());
 
@@ -137,124 +202,5 @@ namespace ChatApp.Tests.Application.Tests
             //    qb.OrderByQuery(It.IsAny<IQueryable<MessageDto>>(), "RoomName", true), Times.Once);
         }
 
-        [Theory]
-        [InlineData(1, "Updated Content")]
-        public async Task UpdateMessageAsync_MessageExists_ReturnsTrue(int messageId, string updatedContent)
-        {
-            // Arrange
-            var existingMessage = new Message
-            {
-                Id = messageId,
-                Content = "Original Content",
-            };
-
-            _unitOfWork.Setup(u => u.GetRepository<Message, int>())
-                .Returns(_messageRepositoryMock.Object);
-
-            _messageRepositoryMock.Setup(r => r.GetByIdAsync(messageId))
-                .ReturnsAsync(existingMessage);
-
-            var messageDto = new MessageDto
-            {
-                Id = messageId,
-                Content = updatedContent
-            };
-
-            // Act
-            var result = await _messageService.UpdateMessageAsync(messageDto);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(updatedContent, existingMessage.Content);
-            _messageRepositoryMock.Verify(r => r.Update(It.IsAny<Message>()), Times.Once);
-            _unitOfWork.Verify(u => u.SaveAsync(), Times.Once);
-        }
-
-        [Theory]
-        [InlineData(1, "Updated Content")]
-        public async Task UpdateMessageAsync_MessageNotFound_ReturnsFalse(int messageId, string updatedContent)
-        {
-            _unitOfWork.Setup(u => u.GetRepository<Message, int>())
-                .Returns(_messageRepositoryMock.Object);
-            _messageRepositoryMock.Setup(r => r.GetByIdAsync(messageId))
-                .ReturnsAsync((Message)null);
-
-            var messageDto = new MessageDto
-            {
-                Id = messageId,
-                Content = updatedContent
-            };
-
-            // Act
-            var result = await _messageService.UpdateMessageAsync(messageDto);
-
-            // Assert
-            Assert.False(result);
-            _messageRepositoryMock.Verify(r => r.Update(It.IsAny<Message>()), Times.Never);
-            _unitOfWork.Verify(u => u.SaveAsync(), Times.Never);
-        }
-
-        [Theory]
-        [InlineData(1)]
-        public async Task DeleteMessageAsync_DeletesMessage(int messageIdToDelete)
-        {
-            // Arrange
-            _unitOfWork.Setup(u => u.GetRepository<Message, int>())
-                .Returns(_messageRepositoryMock.Object);
-
-            // Act
-            await _messageService.DeleteMessageAsync(messageIdToDelete);
-
-            // Assert
-            _messageRepositoryMock.Verify(r => r.DeleteAsync(messageIdToDelete), Times.Once);
-            _unitOfWork.Verify(u => u.SaveAsync(), Times.Once);
-        }
-
-        [Theory]
-        [InlineData("1", 1, "Test message", "TestUser", 1, "Test Room")]
-        public async Task AddMessageAsync_ShouldAddMessage(string userId, int roomId, string content,
-            string userName, int expectedUserId, string expectedRoomName)
-        {
-            // Arrange
-            var addMessageDto = new AddMessageDto
-            {
-                UserId = userId,
-                RoomId = roomId,
-                Content = content,
-                SentAt = DateTime.UtcNow
-            };
-
-            var user = new User { Id = expectedUserId, UserName = userName };
-            var room = new Room { Id = roomId, Name = expectedRoomName };
-
-
-            _userManagerMock.Setup(u => u.FindByIdAsync(addMessageDto.UserId))
-                .ReturnsAsync(user);
-
-            _unitOfWork.Setup(u => u.GetRepository<Room, int>())
-                .Returns(_roomRepositoryMock.Object);
-
-            _roomRepositoryMock.Setup(r => r.GetByIdAsync(addMessageDto.RoomId))
-                .ReturnsAsync(room);
-
-            _unitOfWork.Setup(u => u.GetRepository<Message, int>())
-                .Returns(_messageRepositoryMock.Object);
-
-            // Act
-            var result = await _messageService.AddMessageAsync(addMessageDto);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(addMessageDto.Content, result.Content);
-            Assert.Equal(addMessageDto.SentAt, result.SentAt);
-            Assert.Equal(user.UserName, result.SenderUsername);
-            Assert.Equal(room.Name, result.RoomName);
-
-            _unitOfWork.Verify(u => u.GetRepository<Room, int>(), Times.Once);
-            _roomRepositoryMock.Verify(r => r.GetByIdAsync(addMessageDto.RoomId), Times.Once);
-            _unitOfWork.Verify(u => u.GetRepository<Message, int>(), Times.Once);
-            _messageRepositoryMock.Verify(r => r.CreateAsync(It.IsAny<Message>()), Times.Once);
-            _unitOfWork.Verify(u => u.SaveAsync(), Times.Once);
-        }
     }
 }

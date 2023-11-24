@@ -1,8 +1,5 @@
-﻿using ChatApp.Application.Services.QueryBuilder.Interfaces;
-using ChatApp.Application.Services.UserService;
-using ChatApp.Domain.Users;
+﻿using ChatApp.Domain.Users;
 using ChatApp.Persistence.Common.Interfaces;
-using ChatApp.Persistence.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Moq;
 using System.Linq.Expressions;
@@ -11,28 +8,24 @@ using ChatApp.Domain.Rooms;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Tests.Fixtures.Services;
+using Radzen;
+using System.Data.Entity.Core.Common.CommandTrees;
+using System.Xml;
+using ChatApp.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using System;
+using MockQueryable.Moq;
 
 namespace ChatApp.Tests.Application.Tests
 {
-    public class UserServiceTests
+    public class UserServiceTests : IClassFixture<UserServiceFixture>
     {
-        private readonly Mock<UserManager<User>> _userManagerMock;
-        private readonly Mock<IQueryBuilder<User>> _queryBuilderMock;
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-        private readonly Mock<IRepository<User, int>> _userRepository;
-        private readonly UserService _userService;
-        private const int _pageSize = 5;
+
+        private readonly UserServiceFixture _fixture;
         public UserServiceTests()
         {
-            _userManagerMock = new Mock<UserManager<User>>(
-                Mock.Of<IUserStore<User>>(),
-                null, null, null, null, null, null, null, null);
-            _queryBuilderMock = new Mock<IQueryBuilder<User>>();
-            _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _userRepository = new Mock<IRepository<User, int>>();
-            _userService = new UserService(_userManagerMock.Object, _queryBuilderMock.Object, _unitOfWorkMock.Object);
+            _fixture = new UserServiceFixture();
         }
 
         [Theory]
@@ -45,15 +38,14 @@ namespace ChatApp.Tests.Application.Tests
                 Id = int.Parse(userId),
             };
 
-            _userRepository.Setup(repo => repo.GetByIdAsync(It.IsAny<int>(),
-                    It.IsAny<Expression<Func<User, object>>[]>()))
-                .ReturnsAsync(user);
+            _fixture.SetupUserRepository(user);
 
-            _unitOfWorkMock.Setup(unitOfWork => unitOfWork.GetRepository<User, int>())
-                .Returns(_userRepository.Object);
+
+            _fixture.UnitOfWorkMock.Setup(unitOfWork => unitOfWork.GetRepository<User, int>())
+                .Returns(_fixture.UserRepository.Object);
 
             // Act
-            var result = await _userService.GetWithAll(userId);
+            var result = await _fixture.UserService.GetWithAll(userId);
 
             // Assert
             Assert.NotNull(result);
@@ -67,50 +59,42 @@ namespace ChatApp.Tests.Application.Tests
             string userId, string roomId, bool expectedResult)
         {
             // Arrange
-            var roomRepositoryMock = new Mock<IRepository<Room, int>>();
-
             var userToRoomDto = new AddUserToRoomDto
             {
                 UserId = userId,
                 RoomId = roomId
             };
 
-            var user = new User
-            {
-                Id = 1,
-            };
+            var user = new User { Id = 1 };
 
-            var room = new Room
-            {
-                Id = 2,
-                Users = new List<User>()
-            };
+            var room = new Room { Id = 2, Users = new List<User>() };
 
             if (!expectedResult)
                 room.Users.Add(user);
-            
 
-            _unitOfWorkMock.Setup(unitOfWork => unitOfWork.GetRepository<Room, int>())
-                .Returns(roomRepositoryMock.Object);
+            _fixture.UnitOfWorkMock
+                .Setup(unitOfWork => unitOfWork.GetRepository<Room, int>())
+                .Returns(_fixture.RoomRepository.Object);
 
-            _userManagerMock.Setup(userService => userService.FindByIdAsync(It.IsAny<string>()))
+            _fixture.UserManagerMock
+                .Setup(userService =>
+                    userService.FindByIdAsync(It.IsAny<string>()))
                 .ReturnsAsync(user);
 
-            roomRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<int>(), It.IsAny<Expression<Func<Room, object>>[]>()))
-                .ReturnsAsync(room);
+            _fixture.SetupRoomRepository(room);
 
             // Act
-            var result = await _userService.AddUserToRoomAsync(userToRoomDto);
+            var result = await _fixture.UserService.AddUserToRoomAsync(userToRoomDto);
 
             // Assert
             Assert.Equal(expectedResult, result);
             if (expectedResult)
             {
                 Assert.Contains(user, room.Users);
-                _unitOfWorkMock.Verify(uow => uow.SaveAsync(), Times.Once);
+                _fixture.UnitOfWorkMock.Verify(uow => uow.SaveAsync(), Times.Once);
             }
             else
-                _unitOfWorkMock.Verify(uow => uow.SaveAsync(), Times.Never);
+                _fixture.UnitOfWorkMock.Verify(uow => uow.SaveAsync(), Times.Never);
         }
 
         [Theory]
@@ -122,22 +106,10 @@ namespace ChatApp.Tests.Application.Tests
             bool passwordMatches, bool expectedResult)
         {
             // Arrange
-            var user = userExists ? new User { Id = 1 } : null;
-            _userManagerMock
-                .Setup(u => u.FindByIdAsync("1"))
-                .ReturnsAsync(user);
-            _userManagerMock
-                .Setup(u => u.CheckPasswordAsync(user, "currentPassword"))
-                .ReturnsAsync(passwordMatches);
-            _userManagerMock
-                .Setup(u => u.GeneratePasswordResetTokenAsync(user))
-                .ReturnsAsync("token");
-            _userManagerMock
-                .Setup(u => u.ResetPasswordAsync(user, "token", "newPassword"))
-                .ReturnsAsync(IdentityResult.Success);
+            _fixture.SetupChangePasswordTest(userExists, passwordMatches);
 
             // Act
-            var result = await _userService.ChangePasswordAsync("1", "newPassword", "currentPassword");
+            var result = await _fixture.UserService.ChangePasswordAsync("1", "newPassword", "currentPassword");
 
             // Assert
             Assert.Equal(expectedResult, result);
@@ -151,20 +123,7 @@ namespace ChatApp.Tests.Application.Tests
             bool doesUsernameExist, bool expectedResult)
         {
             // Arrange
-            var existingUser = userExists ? new User { Id = 1, UserName = "existingUsername" } : null;
-
-            _userManagerMock
-                .Setup(u => u.FindByIdAsync("1"))
-                .ReturnsAsync(existingUser);
-
-            _userManagerMock
-                .Setup(u => u.FindByNameAsync(It.IsAny<string>()))
-                .ReturnsAsync(doesUsernameExist ? new User() : null);
-
-            _userManagerMock
-                .Setup(u => u.UpdateAsync(existingUser))
-                .ReturnsAsync(IdentityResult.Success);
-
+            _fixture.SetupUpdateUserTest(userExists, doesUsernameExist);
             var userDto = new UserDto
             {
                 Id = 1,
@@ -174,7 +133,7 @@ namespace ChatApp.Tests.Application.Tests
             };
 
             // Act
-            var result = await _userService.UpdateUserAsync(userDto);
+            var result = await _fixture.UserService.UpdateUserAsync(userDto);
 
             // Assert
             Assert.Equal(expectedResult, result);
@@ -200,22 +159,44 @@ namespace ChatApp.Tests.Application.Tests
             {
                 new() { Id = 1, UserName = "user1", Email = "user1@example.com" },
                 new() { Id = 2, UserName = "user2", Email = "user2@example.com" },
-            }.AsQueryable();
+            };
 
-            _userManagerMock.Setup(m => m.Users).Returns(users);
+            var mock = users.BuildMock();
 
-            _queryBuilderMock
-                .Setup(q => q.SearchQuery(It.IsAny<string>(), It.IsAny<string[]>()))
+            _fixture.UserManagerMock.Setup(m => m.Users).Returns(mock);
+            _fixture.QueryBuilderMock
+                .Setup(q => q.SearchQuery(It.IsAny<string>(), Enum.GetNames(data.Column.GetType())))
                 .Returns((string searchValue, string[] columns) =>
                 {
                     var parameter = Expression.Parameter(typeof(User), "x");
-                    var property = Expression.Property(parameter, columns[0]);
-                    var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-                    var containsCall = Expression.Call(property, containsMethod, Expression.Constant(searchValue));
-                    var lambda = Expression.Lambda<Func<User, bool>>(containsCall, parameter);
+
+                    Expression? expression = null;
+
+                    foreach (var name in columns)
+                    {
+                        var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
+
+                        var property = Expression.Property(parameter, name);
+                        var propertyAsObject = Expression.Convert(property, typeof(object));
+                        var nullCheck = Expression.ReferenceEqual(propertyAsObject, Expression.Constant(null));
+
+                        Expression stringify = property.Type == typeof(string)
+                            ? property
+                            : Expression.Call(property, property.Type.GetMethod("ToString", Type.EmptyTypes));
+
+                        var containsCall = Expression.Call(stringify, containsMethod, Expression.Constant(searchValue));
+                        var conditionalExpression = Expression.Condition(nullCheck, Expression.Constant(false), containsCall);
+
+                        if (expression == null)
+                            expression = conditionalExpression;
+                        else
+                            expression = Expression.OrElse(expression, conditionalExpression);
+                    }
+                    var lambda = Expression.Lambda<Func<User, bool>>(expression!, parameter);
                     return lambda;
                 });
-            _queryBuilderMock
+
+            _fixture.QueryBuilderMock
                 .Setup(q => q.OrderByQuery(It.IsAny<IQueryable<User>>(),
                     It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns((IQueryable<User> query, string column, bool ascOrder) =>
@@ -232,14 +213,14 @@ namespace ChatApp.Tests.Application.Tests
 
                     return query.Provider.CreateQuery<User>(resultExpression);
                 });
-
             // Act
-            var result = await _userService.GetUsersPageAsync(data);
+            var result = await _fixture.UserService.GetUsersPageAsync(data);
 
             // Assert
             Assert.NotNull(result);
             Assert.IsType<GridModelResponse<UserDto>>(result);
-            Assert.True(result.Items.Count() <= _pageSize);
+            Assert.True(result.Items.Count() <= _fixture.PageSize);
         }
     }
 }
+

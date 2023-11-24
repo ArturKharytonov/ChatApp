@@ -4,33 +4,19 @@ using ChatApp.Application.Services.UserService.Interfaces;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.Users;
-using ChatApp.WebAPI.Controllers;
+using ChatApp.Tests.Fixtures.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
 namespace ChatApp.Tests.Presentation.Tests
 {
-    public class AuthenticationControllerTests
+    public class AuthenticationControllerTests : IClassFixture<AuthenticationControllerFixture>
     {
-        private readonly Mock<UserManager<User>> _userManagerMock;
-        private readonly Mock<IJwtService> _jwtServiceMock;
-        private readonly Mock<IUserContext> _userContextMock;
-        private readonly Mock<IUserService> _userServiceMock;
-        private readonly AuthenticationController _authenticationController;
-
+        private readonly AuthenticationControllerFixture _fixture;
         public AuthenticationControllerTests()
         {
-            _userManagerMock = new Mock<UserManager<User>>(Mock.Of<IUserStore<User>>(), null, null, null, null, null, null, null, null);
-            _jwtServiceMock = new Mock<IJwtService>();
-            _userContextMock = new Mock<IUserContext>();
-            _userServiceMock = new Mock<IUserService>();
-            _authenticationController = new AuthenticationController(
-                _userManagerMock.Object,
-                _jwtServiceMock.Object,
-                _userContextMock.Object,
-                _userServiceMock.Object
-            );
+            _fixture = new AuthenticationControllerFixture();
         }
 
         [Theory]
@@ -41,16 +27,16 @@ namespace ChatApp.Tests.Presentation.Tests
             // Arrange
             var changePasswordDto = new ChangePasswordDto { CurrentPassword = currentPassword, NewPassword = newPassword };
 
-            _userContextMock
+            _fixture.UserContextMock
                 .Setup(uc => uc.GetUserId())
                 .Returns(userId);
 
-            _userServiceMock
+            _fixture.UserServiceMock
                 .Setup(us => us.ChangePasswordAsync(userId, changePasswordDto.NewPassword, changePasswordDto.CurrentPassword))
                 .ReturnsAsync(changePasswordResult);
 
             // Act
-            var result = await _authenticationController.ChangePasswordAsync(changePasswordDto);
+            var result = await _fixture.AuthenticationController.ChangePasswordAsync(changePasswordDto);
 
             // Assert
             if (changePasswordResult)
@@ -76,23 +62,23 @@ namespace ChatApp.Tests.Presentation.Tests
             var loginModelDto = new LoginModelDto { UserName = userName, Password = password };
             var user = loginResult ? new User { Id = 1, UserName = userName } : null;
 
-            _userManagerMock
+            _fixture.UserManagerMock
                 .Setup(um => um.FindByNameAsync(loginModelDto.UserName))
                 .ReturnsAsync(user);
 
-            _userManagerMock
+            _fixture.UserManagerMock
                 .Setup(um => um.CheckPasswordAsync(user, loginModelDto.Password))
                 .ReturnsAsync(loginResult);
 
             if (loginResult)
             {
-                _jwtServiceMock
+                _fixture.JwtServiceMock
                     .Setup(jwt => jwt.GetToken(user.Id, loginModelDto.UserName))
                     .Returns("token");
             }
 
             // Act
-            var result = await _authenticationController.LoginAsync(loginModelDto);
+            var result = await _fixture.AuthenticationController.LoginAsync(loginModelDto);
 
             // Assert
             if (loginResult)
@@ -120,10 +106,10 @@ namespace ChatApp.Tests.Presentation.Tests
             var registerModelDto = new RegisterModelDto { Username = username, Email = email, Password = password };
             var userResult = registrationResult ? IdentityResult.Success : IdentityResult.Failed();
 
-            _userManagerMock.Setup(um => um.CreateAsync(It.IsAny<User>(), registerModelDto.Password)).ReturnsAsync(userResult);
+            _fixture.UserManagerMock.Setup(um => um.CreateAsync(It.IsAny<User>(), registerModelDto.Password)).ReturnsAsync(userResult);
 
             // Act
-            var result = await _authenticationController.RegisterAsync(registerModelDto);
+            var result = await _fixture.AuthenticationController.RegisterAsync(registerModelDto);
 
             // Assert
             if (registrationResult)
@@ -137,7 +123,7 @@ namespace ChatApp.Tests.Presentation.Tests
                 var badRequest = Assert.IsType<BadRequestObjectResult>(result);
                 var responseDto = Assert.IsType<RegisterResponseDto>(badRequest.Value);
                 Assert.False(responseDto.Successful);
-                Assert.NotNull(responseDto.Errors); // Add more assertions if necessary
+                Assert.NotNull(responseDto.Errors);
             }
         }
     }
