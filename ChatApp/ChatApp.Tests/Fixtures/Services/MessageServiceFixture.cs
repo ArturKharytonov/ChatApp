@@ -19,11 +19,11 @@ namespace ChatApp.Tests.Fixtures.Services
 {
     public class MessageServiceFixture : IDisposable
     {
-        public readonly Mock<IUnitOfWork> UnitOfWork;
-        public readonly Mock<IQueryBuilder<MessageDto>> QueryBuilderMock;
-        public readonly Mock<UserManager<User>> UserManagerMock;
-        public readonly Mock<IRepository<Message, int>> MessageRepositoryMock;
-        public readonly Mock<IRepository<Room, int>> RoomRepositoryMock;
+        public Mock<IUnitOfWork> UnitOfWork { get; private set; }
+        public Mock<IQueryBuilder<MessageDto>> QueryBuilderMock { get; private set; }
+        public Mock<UserManager<User>> UserManagerMock { get; private set; }
+        public Mock<IRepository<Message, int>> MessageRepositoryMock { get; private set; }
+        public Mock<IRepository<Room, int>> RoomRepositoryMock { get; private set; }
         public readonly MessageService MessageService;
         public readonly int PageSize = 5;
         public readonly IRepositoryMockSetup<Room, int> RoomRepoMockSetup;
@@ -37,16 +37,24 @@ namespace ChatApp.Tests.Fixtures.Services
             UserManagerMock = new Mock<UserManager<User>>(
                 Mock.Of<IUserStore<User>>(),
                 null, null, null, null, null, null, null, null);
+
             MessageRepositoryMock = new Mock<IRepository<Message, int>>();
             RoomRepositoryMock = new Mock<IRepository<Room, int>>();
+
             MessageService = new MessageService(UnitOfWork.Object, QueryBuilderMock.Object, UserManagerMock.Object);
-
             RoomRepoMockSetup = new RepositoryMockSetup<Room, int>();
-
             _queryBuilder = new QueryBuilder<MessageDto>();
 
         }
-        public void Dispose() { }
+
+        public void Dispose()
+        {
+            UnitOfWork?.Reset();
+            QueryBuilderMock?.Reset();
+            UserManagerMock?.Reset();
+            MessageRepositoryMock?.Reset();
+            RoomRepositoryMock?.Reset();
+        }
 
         public void SetupRoomRepository(Room room)
         {
@@ -67,17 +75,14 @@ namespace ChatApp.Tests.Fixtures.Services
             var user = new User { Id = expectedUserId, UserName = userName };
             var room = new Room { Id = roomId, Name = expectedRoomName };
 
+            UnitOfWork.Setup(u => u.GetRepository<Message, int>()).Returns(MessageRepositoryMock.Object);
+            UnitOfWork.Setup(u => u.GetRepository<Room, int>()).Returns(RoomRepositoryMock.Object);
+
             UserManagerMock.Setup(u => u.FindByIdAsync(addMessageDto.UserId))
                 .ReturnsAsync(user);
 
-            UnitOfWork.Setup(u => u.GetRepository<Room, int>())
-                .Returns(RoomRepositoryMock.Object);
-
             RoomRepositoryMock.Setup(r => r.GetByIdAsync(addMessageDto.RoomId))
                 .ReturnsAsync(room);
-
-            UnitOfWork.Setup(u => u.GetRepository<Message, int>())
-                .Returns(MessageRepositoryMock.Object);
 
             return addMessageDto;
         }
@@ -86,6 +91,9 @@ namespace ChatApp.Tests.Fixtures.Services
         {
             UnitOfWork.Setup(u => u.GetRepository<Message, int>())
                 .Returns(MessageRepositoryMock.Object);
+            UnitOfWork.Setup(u => u.GetRepository<Room, int>())
+                .Returns(RoomRepositoryMock.Object);
+
             var mockSet = new Mock<DbSet<Message>>();
             mockSet.As<IQueryable<Message>>().Setup(m => m.Provider).Returns(messages.Provider);
             mockSet.As<IQueryable<Message>>().Setup(m => m.Expression).Returns(messages.Expression);
@@ -99,9 +107,6 @@ namespace ChatApp.Tests.Fixtures.Services
             UserManagerMock
                 .Setup(u => u.FindByIdAsync(It.IsAny<string>()))
                 .ReturnsAsync((string id) => new User { Id = int.Parse(id), UserName = $"User{id}" });
-
-            UnitOfWork.Setup(u => u.GetRepository<Room, int>())
-                .Returns(RoomRepositoryMock.Object);
 
             RoomRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
                 .ReturnsAsync((int id) => new Room { Id = id, Name = $"Room{id}" });

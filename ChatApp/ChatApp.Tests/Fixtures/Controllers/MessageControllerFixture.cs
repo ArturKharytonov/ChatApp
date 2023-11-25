@@ -14,6 +14,9 @@ namespace ChatApp.Tests.Fixtures.Controllers
             MessageController = new MessageController(MessageService.Object);
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            MessageService.Reset();
+        }
     }
 }

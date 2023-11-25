@@ -9,16 +9,7 @@ using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Tests.Fixtures.Services;
-using Radzen;
-using System.Data.Entity.Core.Common.CommandTrees;
-using System.Xml;
-using ChatApp.Persistence.Context;
-using Microsoft.EntityFrameworkCore;
-using System;
-using ChatApp.Application.Services.QueryBuilder;
-using ChatApp.Application.Services.QueryBuilder.Interfaces;
 using FluentAssertions;
-using MockQueryable.Moq;
 
 namespace ChatApp.Tests.Application.Tests
 {
@@ -53,6 +44,8 @@ namespace ChatApp.Tests.Application.Tests
             // Assert
             Assert.NotNull(result);
             Assert.Equal(int.Parse(userId), result.Id);
+
+            _fixture.Dispose();
         }
 
         [Theory]
@@ -98,6 +91,8 @@ namespace ChatApp.Tests.Application.Tests
             }
             else
                 _fixture.UnitOfWorkMock.Verify(uow => uow.SaveAsync(), Times.Never);
+
+            _fixture.Dispose();
         }
 
         [Theory]
@@ -116,6 +111,9 @@ namespace ChatApp.Tests.Application.Tests
 
             // Assert
             Assert.Equal(expectedResult, result);
+
+            _fixture.Dispose();
+
         }
 
         [Theory]
@@ -140,6 +138,7 @@ namespace ChatApp.Tests.Application.Tests
 
             // Assert
             Assert.Equal(expectedResult, result);
+            _fixture.Dispose();
         }
 
 
@@ -162,8 +161,8 @@ namespace ChatApp.Tests.Application.Tests
                 new() { Id = 2, UserName = "user2", Email = "user2@example.com", PhoneNumber = "9876543210" },
                 new() { Id = 1, UserName = "user1", Email = "user1@example.com", PhoneNumber = "4567890123" }
             }.AsQueryable();
-            _fixture.SetupUsersPageService(users);
 
+            _fixture.SetupUsersPageService(users);
             // Act
             var result = await _fixture.UserService.GetUsersPageAsync(data);
 
@@ -172,6 +171,7 @@ namespace ChatApp.Tests.Application.Tests
             Assert.IsType<GridModelResponse<UserDto>>(result);
             Assert.True(result.Items.Count() <= _fixture.PageSize);
             result.Items.Should().BeInAscendingOrder(p => p.Username);
+            _fixture.Dispose();
         }
     }
 }

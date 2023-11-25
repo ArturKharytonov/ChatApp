@@ -5,11 +5,7 @@ using ChatApp.Domain.Enums;
 using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
 using ChatApp.Tests.Fixtures.Services;
-using MockQueryable.Moq;
 using Moq;
-using System.Linq.Expressions;
-using ChatApp.Domain.Messages;
-using ChatApp.Domain.DTOs.MessageDto;
 using FluentAssertions;
 
 namespace ChatApp.Tests.Application.Tests

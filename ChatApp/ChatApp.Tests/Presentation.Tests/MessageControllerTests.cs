@@ -43,6 +43,8 @@ namespace ChatApp.Tests.Presentation.Tests
 
             _fixture.MessageService.Verify(service => service.GetMessagePageAsync(It.IsAny<GridModelDto<MessageColumnsSorting>>()),
                 Times.Once);
+
+            _fixture.Dispose();
         }
 
         [Fact]
@@ -79,6 +81,7 @@ namespace ChatApp.Tests.Presentation.Tests
             Assert.Equal(returnedMessageDto.Content, addMessageDto.Content);
 
             _fixture.MessageService.Verify(service => service.AddMessageAsync(It.IsAny<AddMessageDto>()), Times.Once);
+            _fixture.Dispose();
         }
 
 
@@ -89,7 +92,7 @@ namespace ChatApp.Tests.Presentation.Tests
             // Arrange
             var mockedMessages = new List<MessageDto>
             {
-                new MessageDto
+                new()
                 {
                     Id = 1,
                     Content = "Hello, World!",
@@ -97,7 +100,7 @@ namespace ChatApp.Tests.Presentation.Tests
                     SenderUsername = "test1",
                     SentAt = DateTime.UtcNow.AddMinutes(-10)
                 },
-                new MessageDto
+                new()
                 {
                     Id = 2,
                     Content = "How are you?",
@@ -121,6 +124,7 @@ namespace ChatApp.Tests.Presentation.Tests
             Assert.NotNull(returnedMessages);
 
             _fixture.MessageService.Verify(service => service.GetMessagesFromChat(roomId), Times.Once);
+            _fixture.Dispose();
         }
 
         [Theory]
@@ -155,6 +159,7 @@ namespace ChatApp.Tests.Presentation.Tests
                 Assert.False(updateResponseDto.Successful);
                 Assert.Equal(expectedMessage, updateResponseDto.Message);
             }
+            _fixture.Dispose();
         }
     }
 }

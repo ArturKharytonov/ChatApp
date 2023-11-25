@@ -48,6 +48,8 @@ namespace ChatApp.Tests.Presentation.Tests
 
             _fixture.UserContext.Verify(context => context.GetUserId(), Times.Once);
             _fixture.RoomService.Verify(service => service.GetRoomsPageAsync(userId, model), Times.Exactly(expectOkResult ? 1 : 0));
+
+            _fixture.Dispose();
         }
 
         [Theory]
@@ -87,6 +89,7 @@ namespace ChatApp.Tests.Presentation.Tests
                 Assert.False(addRoomResponseDto.WasAdded);
                 Assert.Null(addRoomResponseDto.CreatedRoomId);
             }
+            _fixture.Dispose();
         }
 
         [Theory]
@@ -116,6 +119,8 @@ namespace ChatApp.Tests.Presentation.Tests
             }
             else
                 Assert.IsType<BadRequestResult>(result);
+
+            _fixture.Dispose();
         }
     }
 }

@@ -5,11 +5,9 @@ using ChatApp.Persistence.Common.Interfaces;
 using ChatApp.Application.Services.QueryBuilder.Interfaces;
 using ChatApp.Application.Services.UserService;
 using Microsoft.AspNetCore.Identity;
-using System.Linq.Expressions;
 using ChatApp.Domain.Rooms;
 using ChatApp.Tests.Fixtures.Setups;
 using ChatApp.Tests.Fixtures.Setups.Interfaces;
-using ChatApp.Domain.DTOs.Http;
 using ChatApp.Application.Services.QueryBuilder;
 using ChatApp.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -47,7 +45,14 @@ namespace ChatApp.Tests.Fixtures.Services
 
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            UserManagerMock.Reset();
+            QueryBuilderMock.Reset();
+            UnitOfWorkMock.Reset();
+            UserRepository.Reset();
+            RoomRepository.Reset();
+        }
 
         public void SetupUserRepository(User user)
         {

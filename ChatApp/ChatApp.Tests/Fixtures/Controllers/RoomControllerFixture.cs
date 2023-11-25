@@ -17,6 +17,11 @@ namespace ChatApp.Tests.Fixtures.Controllers
             RoomService = new Mock<IRoomService>();
             RoomController = new RoomController(RoomService.Object, UserContext.Object);
         }
-        public void Dispose() { }
+
+        public void Dispose()
+        {
+            UserContext.Reset();
+            RoomService.Reset();
+        }
     }
 }
