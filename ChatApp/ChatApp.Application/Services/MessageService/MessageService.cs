@@ -9,6 +9,7 @@ using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Application.Services.MessageService
 {
@@ -29,15 +30,16 @@ namespace ChatApp.Application.Services.MessageService
         public async Task<IEnumerable<MessageDto>> GetMessagesFromChat(string roomId)
         {
             var room = await _unitOfWork.GetRepository<Room, int>()!
-                .GetByIdAsync(int.Parse(roomId), r => r.Messages, r => r.Users);
+                .GetByIdAsync(int.Parse(roomId), r => r.Users, r => r.Messages);
 
-            var messages = room!.Messages.Select(x => new MessageDto
+            var messages = room!.Messages
+                .Select(x => new MessageDto
             {
                 Id = x.Id,
-                SenderUsername = x.Sender.UserName,
                 Content = x.Content,
                 SentAt = x.SentAt,
-                RoomName = x.Room.Name
+                RoomName = x.Room.Name,
+                SenderUsername = x.Sender.UserName
             });
 
             return messages;
@@ -52,7 +54,7 @@ namespace ChatApp.Application.Services.MessageService
                 Content = addMessageDto.Content,
                 SentAt = addMessageDto.SentAt,
                 RoomId = room.Id,
-                SenderId = user.Id
+                SenderId = user.Id,
             };
 
             await _unitOfWork.GetRepository<Message, int>()!.CreateAsync(message);

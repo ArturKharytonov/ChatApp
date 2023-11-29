@@ -3,7 +3,6 @@ using ChatApp.Application.Services.MessageService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.MessageDto;
 using Microsoft.AspNetCore.Authorization;

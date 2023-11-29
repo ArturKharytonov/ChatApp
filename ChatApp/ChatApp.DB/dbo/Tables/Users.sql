@@ -26,4 +26,3 @@ CREATE UNIQUE NONCLUSTERED INDEX [UserNameIndex]
 GO
 CREATE NONCLUSTERED INDEX [EmailIndex]
     ON [dbo].[AspNetUsers]([NormalizedEmail] ASC);
-

@@ -62,7 +62,7 @@ namespace ChatApp.Tests.Application.Tests
         }
 
         [Theory]
-        [InlineData(1, "searchTerm", RoomColumnsSorting.Name, true, 1)] // With search term, sort by ParticipantsNumber in descending order
+        [InlineData(1, "searchTerm", RoomColumnsSorting.Name, true, 1)]
         public async Task GetRoomsPageAsync_ReturnsExpectedResults(int userId, string searchTerm,
             RoomColumnsSorting column, bool asc, int pageNumber)
         {

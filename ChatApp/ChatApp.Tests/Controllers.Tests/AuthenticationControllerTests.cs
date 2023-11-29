@@ -1,15 +1,12 @@
-﻿using ChatApp.Application.Services.JwtHandler.Interfaces;
-using ChatApp.Application.Services.UserContext.Interfaces;
-using ChatApp.Application.Services.UserService.Interfaces;
+﻿using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.Users;
 using ChatApp.Tests.Fixtures.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
-namespace ChatApp.Tests.Presentation.Tests
+namespace ChatApp.Tests.Controllers.Tests
 {
     public class AuthenticationControllerTests : IClassFixture<AuthenticationControllerFixture>
     {

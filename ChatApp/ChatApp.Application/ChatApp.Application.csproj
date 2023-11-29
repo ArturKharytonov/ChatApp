@@ -8,11 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.4.0" />
+    <PackageReference Include="Dapper" Version="2.1.24" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="7.0.13" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.24.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.24.0" />
   </ItemGroup>
 

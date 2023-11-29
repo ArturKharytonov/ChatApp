@@ -11,7 +11,7 @@ public class Room : IDbEntity<int>
 
     public string Name { get; set; } = null!;
 
-    public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
+    public ICollection<Message> Messages { get; set; } = new List<Message>();
 
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public ICollection<User> Users { get; set; } = new List<User>();
 }

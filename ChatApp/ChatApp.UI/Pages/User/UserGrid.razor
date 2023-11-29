@@ -37,7 +37,8 @@
             <Template Context="user">
                 @if (user.Username != _userName)
                 {
-                    <RadzenButton Text="Add to friends" ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="accessibility" class="m-1" />
+                    <RadzenButton Text="Call" ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat"
+                                  Shade="Shade.Lighter" Icon="accessibility" class="m-1" Click="@(() => GoToCall(user))" />
                 }
             </Template>
         </RadzenDataGridColumn>

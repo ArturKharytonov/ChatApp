@@ -5,7 +5,6 @@ using ChatApp.UI.Pages.Common.ComponentHelpers;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.Enums;
-using ChatApp.Domain.DTOs.RoomDto;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using ChatApp.UI.Services.UserApplicationService.Interfaces;
@@ -33,13 +32,14 @@ namespace ChatApp.UI.Pages.User
 
         [CascadingParameter] private Task<AuthenticationState> authenticationStateTask { get; set; }
         private string _userName;
-
+        private string _userId;
         [Inject] public IUserApplicationService UserApplicationService { get; set; }
         [Inject] protected IAuthenticationService _authenticationService { get; set; }
         protected override async Task OnInitializedAsync()
         {
             var authenticationState = await authenticationStateTask;
             _userName = authenticationState.User.FindFirst(ClaimTypes.Name)?.Value;
+            _userId = authenticationState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             ReadFromUrl();
             SortingFieldsDropDown = Enum.GetValues(typeof(UserColumnsSorting)).Cast<UserColumnsSorting>().ToList();
@@ -116,6 +116,11 @@ namespace ChatApp.UI.Pages.User
 
             Items = response.Items;
             Count = response.TotalCount;
+        }
+
+        protected void GoToCall(UserDto user)
+        {
+            NavigationManager.NavigateTo($"/roomcall?senderId={_userId}&getterId={user.Id}");
         }
     }
 }

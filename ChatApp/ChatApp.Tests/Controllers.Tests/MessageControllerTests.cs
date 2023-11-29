@@ -1,12 +1,12 @@
 ﻿using ChatApp.Domain.DTOs.Http;
+using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.Enums;
+using ChatApp.Tests.Fixtures.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Tests.Fixtures.Controllers;
 
-namespace ChatApp.Tests.Presentation.Tests
+namespace ChatApp.Tests.Controllers.Tests
 {
     public class MessageControllerTests : IClassFixture<MessageControllerFixture>
     {

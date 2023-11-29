@@ -8,10 +8,11 @@ export function setRemoteStream(stream) {
 }
 
 export function setRemoteStreamToNull() {
-    const remoteVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
     if (remoteVideo.srcObject) {
         const tracks = remoteVideo.srcObject.getTracks();
         tracks.forEach(track => track.stop());
+
         remoteVideo.srcObject = null;
     }
 }
@@ -22,5 +23,4 @@ export function stopCameraAndMic(stream) {
             track.stop();
         }
     });
-    stream = null;
 }

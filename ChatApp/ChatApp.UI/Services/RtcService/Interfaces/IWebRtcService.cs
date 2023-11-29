@@ -4,12 +4,17 @@ namespace ChatApp.UI.Services.RtcService.Interfaces
 {
     public interface IWebRtcService
     {
-        public event EventHandler<IJSObjectReference>? OnRemoteStreamAcquired;
-        Task StartAsync();
+        event EventHandler<IJSObjectReference>? OnRemoteStreamAcquired;
+        event Action OnCallAccepted;
+        event Action OnHangUp;
         Task Join(string signalingChannel);
         Task<IJSObjectReference> StartLocalStream();
         Task Call();
         Task Hangup();
-        Task ConfirmationResponse(string channel);
+        Task SendOffer(string offer);
+        Task StartAsync();
+        Task RegisterUserSignalGroupsAsync();
+        Task AskForConfirmation(string channel, int senderId, int getterId);
+        Task ConfirmationResponse(string channel, bool result);
     }
 }

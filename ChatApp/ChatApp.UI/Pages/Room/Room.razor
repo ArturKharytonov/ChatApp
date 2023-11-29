@@ -2,7 +2,6 @@
 @using ChatApp.Domain.DTOs.MessageDto
 @using ChatApp.UI.Services.MessageApplicationService.Interfaces
 @using ChatApp.Domain.DTOs.Http
-@using ChatApp.Domain.DTOs.RoomDto
 @using ChatApp.Domain.DTOs.UserDto
 @using ChatApp.UI.Services.RoomApplicationService.Interfaces
 @using ChatApp.UI.Services.SignalRService.Interfaces
@@ -18,14 +17,13 @@
     <Item OnClick="@OnDeleteClick">Delete</Item>
 </ContextMenu>
 
+
 <RadzenButton Click=@OnCallClick Text="Start call" Icon="input" ButtonStyle="ButtonStyle.Success"/>
-<RadzenButton Click=@OnAnotherCallClick Text="Start another call" Icon="input" ButtonStyle="ButtonStyle.Success" />
 
 
 <div style="display: flex; flex-direction: column">
     <div>
-        <div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px; max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; 
-                    background-color: #3F3075; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
+        <div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px; max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; background-color: #3F3075; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
             @if (Messages.Count > 0)
             {
                 @foreach (var message in Messages)
@@ -54,8 +52,8 @@
 
         <div class="input" style="height: 15%; display: flex; justify-content: center">
             <div style="display: flex; align-items: center;">
-                <RadzenTextArea Style="resize: none;" Placeholder="Enter here..." MaxLength="400" @bind-Value="@Input" class="w-100 mb-2" />
-                <RadzenButton Icon="send" Class="btn btn-primary" Click="@OnSendClick" style="margin-left: 8px;" />
+                <RadzenTextArea Style="resize: none;" Placeholder="Enter here..." MaxLength="400" @bind-Value="@Input" class="w-100 mb-2"/>
+                <RadzenButton Icon="send" Class="btn btn-primary" Click="@OnSendClick" style="margin-left: 8px;"/>
             </div>
         </div>
     </div>
@@ -97,15 +95,15 @@
     protected override async Task OnInitializedAsync()
     {
         //TODO: check if current user is participant
-        var _room = await RoomApplicationService.GetRoomAsync(Id);
+        var room = await RoomApplicationService.GetRoomAsync(Id);
 
-        if (_room.Name.IsNullOrEmpty())
+        if (room.Name.IsNullOrEmpty())
         {
             NavigationManager.NavigateTo("/roomgrid");
             return;
         }   
-        _chatName = _room.Name;
-        _chatId = _room.Id.ToString();
+        _chatName = room.Name;
+        _chatId = room.Id.ToString();
         _currentUser = await UserApplicationService.GetUserAsync();
 
         _userId = _currentUser.Id.ToString();
@@ -126,12 +124,6 @@
     {
         SignalRService.NotifyAboutCall(_chatId, _chatName, _userName);
         NavigationManager.NavigateTo($"/call/{Id}");
-    }
-
-    private void OnAnotherCallClick()
-    {
-        SignalRService.NotifyAboutCall(_chatId, _chatName, _userName);
-        NavigationManager.NavigateTo($"/roomcall/{Id}");
     }
 
     public async Task OnSendClick()

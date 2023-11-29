@@ -3,7 +3,7 @@ using ChatApp.UI.Services.RtcService.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.JSInterop;
-using System.IO;
+using Radzen;
 
 
 namespace ChatApp.UI.Services.RtcService
@@ -18,18 +18,25 @@ namespace ChatApp.UI.Services.RtcService
         private HubConnection? _hub;
         private string? _signalingChannel;
         public event EventHandler<IJSObjectReference>? OnRemoteStreamAcquired;
+        public event Action OnCallAccepted;
+        public event Action OnHangUp;
 
+        private readonly DialogService _dialogService;
 
-        public WebRtcService(IJSRuntime js, NavigationManager nav, ILocalStorageService localStorageService)
+        public WebRtcService(IJSRuntime js,
+            NavigationManager nav,
+            ILocalStorageService localStorageService,
+            DialogService dialogService)
         {
             _js = js;
             _nav = nav;
             _localStorageService = localStorageService;
+            _dialogService = dialogService;
         }
         public async Task StartAsync()
         {
             _hub = new HubConnectionBuilder()
-                .WithUrl(_nav.ToAbsoluteUri($"https://localhost:7223/callHub"), o => o.AccessTokenProvider =
+                .WithUrl(_nav.ToAbsoluteUri("https://localhost:7223/callHub"), o => o.AccessTokenProvider =
                 async () => await _localStorageService.GetItemAsync<string>("token"))
                 .Build();
             _jsModule = await _js.InvokeAsync<IJSObjectReference>(
@@ -37,7 +44,6 @@ namespace ChatApp.UI.Services.RtcService
 
             _jsThis = DotNetObjectReference.Create(this);
             await _jsModule.InvokeVoidAsync("initialize", _jsThis);
-
 
             _hub.On<string, string, string>("SignalWebRtc", async (signalingChannel, type, payload) =>
             {
@@ -58,17 +64,41 @@ namespace ChatApp.UI.Services.RtcService
                 }
             });
 
-            _hub.On("ConfirmationResult", async () =>
+            _hub.On<string, int, int>("AskForConfirmation", async (channel, senderId, getterId) =>
             {
-                await Call();
+                var result = await _dialogService.Confirm("Incoming call!", $"Call in {channel}", new()
+                {
+                    OkButtonText = "Answer",
+                    CancelButtonText = "Decline",
+                });
+                if(result.Value)
+                    _nav.NavigateTo($"/roomcall?senderId={senderId}&getterId={getterId}&requestCall=true");
+
+                else
+                    await ConfirmationResponse(channel, result.Value);
+            });
+
+            _hub.On<bool>("ConfirmationResult", async (isConfirmed) =>
+            {
+                if (isConfirmed)
+                {
+                    OnCallAccepted.Invoke();
+                    await Call();
+                }
+                else
+                    await _dialogService.Alert("It seems that user is busy", "Call declined!");
             });
 
             _hub.On("HangUp", async () =>
             {
                 if (_jsModule == null) throw new InvalidOperationException();
                 await _jsModule.InvokeVoidAsync("hangupAction");
+                OnHangUp.Invoke();
             });
+
             await _hub.StartAsync();
+
+            await RegisterUserSignalGroupsAsync();
         }
         public async Task Join(string signalingChannel)
         {
@@ -104,10 +134,11 @@ namespace ChatApp.UI.Services.RtcService
             await StartAsync();
             return _hub!;
         }
-        public async Task ConfirmationResponse(string channel)
+        public async Task ConfirmationResponse(string channel, bool result)
         {
-            await _hub.SendAsync("ConfirmationResponse", channel);
+            await _hub.SendAsync("ConfirmationResponse", channel, result);
         }
+
 
         [JSInvokable]
         public async Task SendOffer(string offer)
@@ -138,10 +169,15 @@ namespace ChatApp.UI.Services.RtcService
             OnRemoteStreamAcquired?.Invoke(this, stream);
         }
 
-        //public async Task RegisterUserSignalGroupsAsync()
-        //{
-        //    var groupIds = await _accountService.GetUserSignalGroupsAsync();
-        //    await _hub.SendAsync("RegisterMultipleGroupsAsync", groupIds.Result.SignalIdentifiers);
-        //}
+        public async Task RegisterUserSignalGroupsAsync()
+        {
+            //var groupIds = new List<int>(); // get all groups ids where user exist
+            await _hub.SendAsync("RegisterMultipleGroupsAsync");
+        }
+
+        public async Task AskForConfirmation(string channel, int senderId, int getterId)
+        {
+            await _hub.SendAsync("AskForConfirmation", channel, senderId, getterId);
+        }
     }
 }

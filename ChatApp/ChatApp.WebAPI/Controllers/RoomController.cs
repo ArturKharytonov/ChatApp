@@ -2,10 +2,7 @@
 using ChatApp.Application.Services.UserContext.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
-using ChatApp.UI.Services.SignalRService;
-using ChatApp.UI.Services.SignalRService.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

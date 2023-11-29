@@ -32,14 +32,16 @@ builder.Services.AddBlazorContextMenu();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<DialogService>();
+
 builder.Services.AddScoped<ISignalRService, SignalRService>();
+builder.Services.AddScoped<IWebRtcService, WebRtcService>();
 
 builder.Services.AddScoped<IMessageApplicationService, MessageApplicationService>();
 builder.Services.AddScoped<IRoomApplicationService, RoomApplicationService>();
 builder.Services.AddScoped<IUserApplicationService, UserApplicationService>();
 builder.Services.AddScoped<IHttpClientPwa, HttpClientPwa>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-builder.Services.AddScoped<IWebRtcService, WebRtcService>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
