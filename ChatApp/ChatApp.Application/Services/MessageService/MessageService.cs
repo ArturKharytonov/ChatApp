@@ -9,6 +9,7 @@ using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Application.Services.MessageService
 {
@@ -28,18 +29,22 @@ namespace ChatApp.Application.Services.MessageService
 
         public async Task<IEnumerable<MessageDto>> GetMessagesFromChat(string roomId)
         {
-            var room = await _unitOfWork.GetRepository<Room, int>()!
-                .GetByIdAsync(int.Parse(roomId), r => r.Messages, r => r.Users);
+            var roomsQuery = await _unitOfWork.GetRepository<Room, int>()!.GetAllAsQueryableAsync();
 
-            var messages = room.Messages.Select(x => new MessageDto
+            var room = roomsQuery
+                .Include(r => r.Messages)
+                .ThenInclude(m => m.Sender)
+                .FirstOrDefault(r => r.Id == int.Parse(roomId));
+
+            var messages = room!.Messages
+                .Select(x => new MessageDto
             {
                 Id = x.Id,
-                SenderUsername = x.Sender.UserName,
                 Content = x.Content,
                 SentAt = x.SentAt,
-                RoomName = x.Room.Name
+                RoomName = x.Room.Name,
+                SenderUsername = x.Sender.UserName!
             });
-
 
             return messages;
         }
@@ -53,7 +58,7 @@ namespace ChatApp.Application.Services.MessageService
                 Content = addMessageDto.Content,
                 SentAt = addMessageDto.SentAt,
                 RoomId = room.Id,
-                SenderId = user.Id
+                SenderId = user.Id,
             };
 
             await _unitOfWork.GetRepository<Message, int>()!.CreateAsync(message);
@@ -98,7 +103,7 @@ namespace ChatApp.Application.Services.MessageService
                 Items = messageInformation,
                 TotalCount = totalCount
             };
-        }
+        } 
         public async Task<bool> UpdateMessageAsync(MessageDto message)
         {
             var repo = _unitOfWork.GetRepository<Message, int>();
@@ -115,6 +120,7 @@ namespace ChatApp.Application.Services.MessageService
         {
             var repo = _unitOfWork.GetRepository<Message, int>()!;
             await repo.DeleteAsync(messageId);
+            await _unitOfWork.SaveAsync();
         }
     }
 }

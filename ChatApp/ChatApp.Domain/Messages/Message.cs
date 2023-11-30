@@ -16,7 +16,7 @@ public class Message : IDbEntity<int>
 
     public int SenderId { get; set; }
 
-    public virtual Room Room { get; set; } = null!;
+    public Room Room { get; set; } = null!;
 
-    public virtual User Sender { get; set; } = null!;
+    public User Sender { get; set; } = null!;
 }

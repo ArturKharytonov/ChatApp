@@ -1,0 +1,141 @@
+﻿@page "/roomcall"
+@using ChatApp.UI.Services.RtcService.Interfaces
+
+
+<div class="container">
+    <div class="row">
+        <video class="col col-lg-6 p-0" id="localVideo" autoplay playsinline></video>
+        <video class="col col-lg-6 p-0" id="remoteVideo" autoplay playsinline></video>
+    </div>
+</div>
+
+<div class="py-4">
+    <div class="button-container">
+        <RadzenButton id="callButton" Click="AskForConfirmation" Disabled="@_callDisabled">Call</RadzenButton>
+        <RadzenButton id="hangupButton" Click="HangupAction" Disabled="@_hangupDisabled">Hang Up</RadzenButton>
+    </div>
+</div>
+
+<style>
+    .button-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        margin: 0 10px;
+        padding: 10px 20px;
+        font-size: 18px;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: auto;
+    }
+
+    .row {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    video {
+        width: 100%;
+        max-width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    IWebRtcService RtcService { get; set; }
+    [Inject]
+    IJSRuntime Js { get; set; }
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    protected IJSObjectReference? _module;
+    protected IJSObjectReference? _stream;
+    protected bool _callDisabled = false;
+    protected bool _hangupDisabled = true;
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "senderId")]
+    public int SenderId { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "getterId")]
+    public int GetterId { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "requestCall")]
+    public string? RequestCallValue { get; set; }
+    protected bool CallRequested => !string.IsNullOrWhiteSpace(RequestCallValue) && RequestCallValue.Equals("true", StringComparison.OrdinalIgnoreCase);
+    protected string _channel => $"video-{SenderId}-{GetterId}";
+
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _module = await Js.InvokeAsync<IJSObjectReference>(
+               "import", "./Pages/Call/RoomCall.razor.js");
+        await RtcService.Join(_channel);
+        NavigationManager.LocationChanged += LocationChanged;
+        await StartAction();
+        await base.OnInitializedAsync();
+
+        if (CallRequested)
+            await RtcService.ConfirmationResponse(_channel, CallRequested);
+    }
+    protected async Task AskForConfirmation()
+    {
+        await RtcService.AskForConfirmation(_channel, SenderId, GetterId);
+    }
+    protected async Task StartAction()
+    {
+        if (string.IsNullOrWhiteSpace(_channel)) return;
+        if (_module == null) throw new InvalidOperationException();
+        var stream = await RtcService.StartLocalStream();
+        _stream = stream;
+        await _module.InvokeVoidAsync("setLocalStream", stream);
+        RtcService.OnRemoteStreamAcquired += RtcOnOnRemoteStreamAcquired;
+        RtcService.OnCallAccepted += OnCallAccepted;
+        RtcService.OnHangUp += OnHangUp;
+        await Console.Out.WriteLineAsync("Video added");
+    }
+    protected async void RtcOnOnRemoteStreamAcquired(object? _, IJSObjectReference e)
+    {
+        if (_module == null) throw new InvalidOperationException();
+        await _module.InvokeVoidAsync("setRemoteStream", e);
+        _callDisabled = true;
+        _hangupDisabled = false;
+        StateHasChanged();
+    }
+    protected async Task HangupAction()
+    {
+        await RtcService.Hangup();
+        _callDisabled = false;
+        _hangupDisabled = true;
+        await _module.InvokeVoidAsync("setRemoteStreamToNull");
+        NavigationManager.NavigateTo("/");
+    }
+    protected async void OnHangUp()
+    {
+        _callDisabled = false;
+        _hangupDisabled = true;
+        await _module.InvokeVoidAsync("setRemoteStreamToNull");
+        NavigationManager.NavigateTo("/");
+    }
+    protected void OnCallAccepted()
+    {
+        _callDisabled = true;
+        _hangupDisabled = false;
+    }
+    async void LocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        if (_callDisabled)
+            await RtcService.Hangup();
+        NavigationManager.LocationChanged -= LocationChanged;
+        await _module.InvokeVoidAsync("stopCameraAndMic", _stream);
+    }
+}
+

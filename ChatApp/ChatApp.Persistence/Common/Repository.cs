@@ -1,8 +1,10 @@
-﻿using ChatApp.Domain.Common;
+﻿using System.Diagnostics.CodeAnalysis;
+using ChatApp.Domain.Common;
 using ChatApp.Persistence.Common.Interfaces;
 using ChatApp.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using ChatApp.Domain.Rooms;
 
 namespace ChatApp.Persistence.Common
 {
@@ -21,13 +23,14 @@ namespace ChatApp.Persistence.Common
             query = includes.Aggregate(query, (current, include) =>
                 current.Include(include));
 
-            return await query.FirstOrDefaultAsync(entity => EF.Property<TId>(entity, "Id").Equals(id));
-        }
 
+            return await query.FirstOrDefaultAsync(entity => EF.Property<TId>(entity, "Id")!.Equals(id));
+        }
         public async Task<TEntity?> GetByIdAsync(TId id)
         {
             return await _context.Set<TEntity>().FindAsync(id);
         }
+
         public async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             return await _context.Set<TEntity>().ToListAsync();

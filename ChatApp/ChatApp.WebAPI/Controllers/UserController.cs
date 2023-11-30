@@ -43,16 +43,16 @@ namespace ChatApp.WebAPI.Controllers
             
             var userGroupsResponseDto = new UserGroupsResponseDto();
 
-            if (user.Rooms.Count > 0)
-            {
-                foreach (var room in user.Rooms)
-                {
-                    userGroupsResponseDto.GroupsId.Add(room.Id.ToString());
-                }
-            }
+            if (user.Rooms.Count <= 0) 
+                return Ok(userGroupsResponseDto);
 
+
+            foreach (var room in user.Rooms)
+                userGroupsResponseDto.GroupsId.Add(room.Id.ToString());
+            
             return Ok(userGroupsResponseDto);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> GetUserAsync()
@@ -62,6 +62,7 @@ namespace ChatApp.WebAPI.Controllers
                 return BadRequest(new ChangePasswordResponseDto { Success = false, Error = "Unable to retrieve user id from token." });
             return Ok(await _userService.GetUserAsync(userIdClaim));
         }
+
 
         [HttpPost("credentials")]
         public async Task<IActionResult> ChangeUserCredentials([FromBody] UserDto user)

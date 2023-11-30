@@ -1,12 +1,13 @@
 ﻿@page "/chat/{id}"
 @using ChatApp.Domain.DTOs.MessageDto
 @using ChatApp.UI.Services.MessageApplicationService.Interfaces
-@using System.Security.Claims
 @using ChatApp.Domain.DTOs.Http
+@using ChatApp.Domain.DTOs.UserDto
 @using ChatApp.UI.Services.RoomApplicationService.Interfaces
 @using ChatApp.UI.Services.SignalRService.Interfaces
 @using Microsoft.IdentityModel.Tokens
 @using ChatApp.UI.Pages.User
+@using ChatApp.UI.Services.UserApplicationService.Interfaces
 @attribute [Authorize]
 
 <h3>Chat: @_chatName</h3>
@@ -16,10 +17,13 @@
     <Item OnClick="@OnDeleteClick">Delete</Item>
 </ContextMenu>
 
+
+<RadzenButton Click=@OnCallClick Text="Start call" Icon="input" ButtonStyle="ButtonStyle.Success"/>
+
+
 <div style="display: flex; flex-direction: column">
     <div>
-        <div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px; max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; 
-                    background-color: #3F3075; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
+        <div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px; max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; background-color: #3F3075; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
             @if (Messages.Count > 0)
             {
                 @foreach (var message in Messages)
@@ -48,8 +52,8 @@
 
         <div class="input" style="height: 15%; display: flex; justify-content: center">
             <div style="display: flex; align-items: center;">
-                <RadzenTextArea Style="resize: none;" Placeholder="Enter here..." MaxLength="400" @bind-Value="@Input" class="w-100 mb-2" />
-                <RadzenButton Icon="send" Class="btn btn-primary" Click="@OnSendClick" style="margin-left: 8px;" />
+                <RadzenTextArea Style="resize: none;" Placeholder="Enter here..." MaxLength="400" @bind-Value="@Input" class="w-100 mb-2"/>
+                <RadzenButton Icon="send" Class="btn btn-primary" Click="@OnSendClick" style="margin-left: 8px;"/>
             </div>
         </div>
     </div>
@@ -59,17 +63,16 @@
 </div>
 
 @code {
-
     [Parameter]
     public string Id { get; set; }
-
     private string _userId;
     private string _userName;
     private string _chatName;
+    private string _chatId;
     private (bool InProcess, MessageDto? Message) _isEditing = (false, null);
     protected string Input { get; set; }
     private List<MessageDto> Messages { get; set; } = new List<MessageDto>();
-
+    private UserDto _currentUser;
 
     [Inject]
     NotificationService NotificationService { get; set; } = null!;
@@ -83,38 +86,44 @@
     [Inject] 
     IRoomApplicationService RoomApplicationService { get; set; } = null!;
 
+    [Inject]
+    IUserApplicationService UserApplicationService { get; set; } = null!;
 
     [CascadingParameter]
     ISignalRService SignalRService { get; set; } = null!;
 
-
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationState { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
         //TODO: check if current user is participant
-
         var room = await RoomApplicationService.GetRoomAsync(Id);
 
         if (room.Name.IsNullOrEmpty())
         {
             NavigationManager.NavigateTo("/roomgrid");
             return;
-        }
+        }   
         _chatName = room.Name;
+        _chatId = room.Id.ToString();
+        _currentUser = await UserApplicationService.GetUserAsync();
 
-        var authenticationState = await AuthenticationState;
-        _userId = authenticationState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
-        _userName = authenticationState.User.FindFirst(ClaimTypes.Name)?.Value!;
+        _userId = _currentUser.Id.ToString();
+        _userName = _currentUser.Username;
 
         Messages = await MessageApplicationService.GetMessagesAsync(Id);
 
         await SignalRService.AddToOnline(Id);
+
         SignalRService.OnItemDelete += OnMessageDelete;
         SignalRService.OnItemReceived += OnMessageReceived;
         SignalRService.OnItemUpdate += OnMessageUpdate;
+
         NavigationManager.LocationChanged += HandleLocationChanged;
+    }
+
+    private void OnCallClick()
+    {
+        SignalRService.NotifyAboutCall(_chatId, _chatName, _userName);
+        NavigationManager.NavigateTo($"/call/{Id}");
     }
 
     public async Task OnSendClick()
@@ -137,7 +146,7 @@
             else
             {
                 _isEditing.Message!.Content = Input;
-                var message = await MessageApplicationService.UpdateMessageAsync(_isEditing.Message!);
+                await MessageApplicationService.UpdateMessageAsync(_isEditing.Message!);
                 await SignalRService.UpdateMessageAsync(Id, _isEditing.Message!);
             }
             _isEditing.InProcess = false;

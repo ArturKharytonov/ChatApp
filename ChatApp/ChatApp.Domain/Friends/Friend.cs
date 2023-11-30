@@ -11,7 +11,7 @@ public class Friend : IDbEntity<int>
 
     public int SecondUserId { get; set; }
 
-    public virtual User FirstUser { get; set; } = null!;
+    public User FirstUser { get; set; } = null!;
 
-    public virtual User SecondUser { get; set; } = null!;
+    public User SecondUser { get; set; } = null!;
 }

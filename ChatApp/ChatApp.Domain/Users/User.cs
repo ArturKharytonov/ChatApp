@@ -9,11 +9,11 @@ namespace ChatApp.Domain.Users;
 
 public class User : IdentityUser<int>, IDbEntity<int>
 {
-    public virtual ICollection<Friend> FriendFirstUsers { get; set; } = new List<Friend>();
+    public ICollection<Friend> FriendFirstUsers { get; set; } = new List<Friend>();
 
-    public virtual ICollection<Friend> FriendSecondUsers { get; set; } = new List<Friend>();
+    public ICollection<Friend> FriendSecondUsers { get; set; } = new List<Friend>();
 
-    public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
+    public ICollection<Message> Messages { get; set; } = new List<Message>();
 
-    public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
+    public ICollection<Room> Rooms { get; set; } = new List<Room>();
 }

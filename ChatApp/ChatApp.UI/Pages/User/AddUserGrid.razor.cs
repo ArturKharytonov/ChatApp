@@ -23,9 +23,9 @@ namespace ChatApp.UI.Pages.User
         public IEnumerable<UserDto> Items { get; set; }
         public int Count { get; set; }
         public int CurrentPage { get; set; }
-        [Inject] public NavigationManager NavigationManager { get; set; }
-        [Inject] public IUserApplicationService UserApplicationService { get; set; }
-        [Inject] private NotificationService NotificationService { get; set; }
+        [Inject] public NavigationManager NavigationManager { get; set; } = null!;
+        [Inject] public IUserApplicationService UserApplicationService { get; set; } = null!;
+        [Inject] private NotificationService NotificationService { get; set; } = null!;
 
         [CascadingParameter]
         ISignalRService SignalRService { get; set; } = null!;

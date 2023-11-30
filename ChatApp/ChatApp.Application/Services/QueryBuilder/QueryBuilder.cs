@@ -33,6 +33,7 @@ namespace ChatApp.Application.Services.QueryBuilder
             }
             return Expression.Lambda<Func<TEntity, bool>>(expression!, parameter);
         }
+
         public IQueryable<TEntity> OrderByQuery(IQueryable<TEntity> source, string orderByValue, bool orderByType)
         {
             var command = orderByType ? "OrderBy" : "OrderByDescending";

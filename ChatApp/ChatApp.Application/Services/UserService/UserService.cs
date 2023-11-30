@@ -1,4 +1,5 @@
-﻿using ChatApp.Application.Services.QueryBuilder.Interfaces;
+﻿using System.Diagnostics.CodeAnalysis;
+using ChatApp.Application.Services.QueryBuilder.Interfaces;
 using ChatApp.Application.Services.UserService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
