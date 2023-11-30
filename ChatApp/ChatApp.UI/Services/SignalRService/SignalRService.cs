@@ -1,7 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.DTOs.UserDto;
-using ChatApp.Domain.Users;
 using ChatApp.UI.Services.SignalRService.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;

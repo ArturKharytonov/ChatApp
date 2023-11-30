@@ -4,37 +4,36 @@ using Newtonsoft.Json;
 using System.Net.Http.Json;
 using System.Text;
 
-namespace ChatApp.IntegrationTests
+namespace ChatApp.IntegrationTests;
+
+public class AuthenticationHelper
 {
-    public class AuthenticationHelper
+    private readonly HttpClient _client;
+
+    public AuthenticationHelper(HttpClient client)
     {
-        private readonly HttpClient _client;
+        _client = client;
+    }
 
-        public AuthenticationHelper(HttpClient client)
+    public async Task AddTokenToHeader(string userName, string password)
+    {
+        var authToken = await GetAuthTokenAsync(userName, password);
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken ?? string.Empty}");
+    }
+
+    private async Task<string?> GetAuthTokenAsync(string userName, string password)
+    {
+        var loginModelDto = new LoginModelDto
         {
-            _client = client;
-        }
+            UserName = userName,
+            Password = password
+        };
 
-        public async Task AddTokenToHeader(string userName, string password)
-        {
-            var authToken = await GetAuthTokenAsync(userName, password);
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken ?? string.Empty}");
-        }
+        var jsonContent = new StringContent(JsonConvert.SerializeObject(loginModelDto), Encoding.UTF8, "application/json");
 
-        private async Task<string?> GetAuthTokenAsync(string userName, string password)
-        {
-            var loginModelDto = new LoginModelDto
-            {
-                UserName = userName,
-                Password = password
-            };
+        var response = await _client.PostAsync("/auth/login", jsonContent);
 
-            var jsonContent = new StringContent(JsonConvert.SerializeObject(loginModelDto), Encoding.UTF8, "application/json");
-
-            var response = await _client.PostAsync("/auth/login", jsonContent);
-
-            var responseDto = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-            return responseDto?.Token;
-        }
+        var responseDto = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+        return responseDto?.Token;
     }
 }

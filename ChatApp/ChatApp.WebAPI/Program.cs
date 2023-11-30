@@ -63,8 +63,11 @@ public class Program
                         // If the request is for our hub...
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            (path.StartsWithSegments("/chatHub")))
+                            (path.StartsWithSegments("/chatHub") ||
+                             path.StartsWithSegments("/callHub")))
+                        {
                             context.Token = accessToken;
+                        }
 
                         return Task.CompletedTask;
                     }
@@ -105,9 +108,6 @@ public class Program
         builder.Services.AddScoped<IMessageService, MessageService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IRoomService, RoomService>();
-
-        builder.Services.AddTransient<ISqlService, SqlService>();
-        builder.Services.AddSingleton(provider => builder.Configuration.GetConnectionString("DefaultConnection"));
 
         builder.Services.AddScoped<IQueryBuilder<User>, QueryBuilder<User>>();
         builder.Services.AddScoped<IQueryBuilder<RoomDto>, QueryBuilder<RoomDto>>();

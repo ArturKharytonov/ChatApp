@@ -17,65 +17,78 @@ public class ChatWebApplicationFactory : WebApplicationFactory<Program>
 {
     private UserManager<User> _userManager;
     private ChatDbContext _context;
-    private const string _connectionString = "Server = (localdb)\\mssqllocaldb; Database = chat_app_db_test; Trusted_Connection = True; MultipleActiveResultSets=True;";
+    public readonly string ConnectionString = "Server = (localdb)\\mssqllocaldb; Database = chat_app_db_test; Trusted_Connection = True; MultipleActiveResultSets=True;";
     
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll(typeof(DbContextOptions<ChatDbContext>));
-            services.AddSqlServer<ChatDbContext>(_connectionString);
+            services.AddSqlServer<ChatDbContext>(ConnectionString);
 
             var serviceProvider = services.BuildServiceProvider();
             _userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
             _context = CreateDbContext(services);
-
             _context.Database.EnsureDeleted();
-            _context.Database.EnsureCreated();
-            AddDataAsync().Wait();
+            if (_context.Database.EnsureCreated())
+                AddDataAsync().Wait();
         });
     }
+
     private async Task AddDataAsync()
     {
-        var loginUser = new User { UserName = "loginUser", Email = "user1@example.com" };
-        var changePasswordUser = new User { UserName = "changePasswordUser", Email = "user2@example.com" };
-        var userAndMessages = new User { UserName = "UserAndMessages", Email = "user3@example.com" };
-        var userAndRooms = new User { UserName = "UserAndRooms", Email = "user4@example.com"};
-        var userForUpdatingCredentials = new User { UserName = "UserAndCredentials", Email = "user5@example.com" };
-
-        // Create users without setting Id explicitly
-        await _userManager.CreateAsync(loginUser, "Login123!");
-        await _userManager.CreateAsync(changePasswordUser, "ChangePassword123!");
-        await _userManager.CreateAsync(userAndMessages, "UserAndMessages123!");
-        await _userManager.CreateAsync(userAndRooms, "UserAndRooms123!");
-        await _userManager.CreateAsync(userForUpdatingCredentials, "UserAndCredentials123!");
+        var users = GetTestUsersList();
+        foreach (var user in users)
+            await _userManager.CreateAsync(user, $"{user.UserName}123!");
 
         // Create a message with valid RoomId and SenderId
         var messageToDelete = new Message
         {
             Content = "Hello, this is a message to delete.",
             SentAt = DateTime.Now,
-            SenderId = userAndMessages.Id
+            SenderId = users[2].Id
         };
         var messageToUpdate = new Message
         {
             Content = "Hello world.",
             SentAt = DateTime.Now,
-            SenderId = userAndMessages.Id
+            SenderId = users[2].Id
         };
 
         // Create a room
-        var roomForMessages = new Room { Name = "roomForMessages", Messages = { messageToDelete , messageToUpdate} };
-        var roomForGetting = new Room { Name = "roomForGetting" };
-        var roomForParticipants = new Room { Name = "roomForParticipants" };
+        var rooms = GetTestRoomsList();
+        foreach (var room in rooms)
+            await _context.Rooms.AddAsync(room);
 
-        await _context.Rooms.AddAsync(roomForMessages);
-        await _context.Rooms.AddAsync(roomForGetting);
-        await _context.Rooms.AddAsync(roomForParticipants);
+        rooms[0].Messages.Add(messageToDelete);
+        rooms[0].Messages.Add(messageToUpdate);
 
         await _context.SaveChangesAsync();
     }
+
+    private static List<User> GetTestUsersList()
+    {
+        return new List<User>()
+        {
+            new() { UserName = "loginUser", Email = "user1@example.com" },
+            new() { UserName = "changePasswordUser", Email = "user2@example.com" },
+            new() { UserName = "UserAndMessages", Email = "user3@example.com" },
+            new() { UserName = "UserAndRooms", Email = "user4@example.com"},
+            new() { UserName = "UserAndCredentials", Email = "user5@example.com" }
+        };
+    }
+
+    private static List<Room> GetTestRoomsList()
+    {
+        return new List<Room>
+        {
+            new() { Name = "roomForMessages"},
+            new() { Name = "roomForGetting" },
+            new() { Name = "roomForParticipants" }
+        };
+    }
+
     private static ChatDbContext CreateDbContext(IServiceCollection services)
     {
         var serviceProvider = services.BuildServiceProvider();

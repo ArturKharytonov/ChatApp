@@ -5,20 +5,13 @@ using Newtonsoft.Json;
 using System.Text;
 using ChatApp.Domain.DTOs.Http.Responses;
 using FluentAssertions;
+using FluentAssertions.Execution;
 
 namespace ChatApp.IntegrationTests.Controller.Tests;
 
 [Collection("Sequential")]
-public class AuthenticationControllerIntegrationTests : IClassFixture<ChatWebApplicationFactory>
+public class AuthenticationControllerIntegrationTests : TestBase
 {
-    private readonly HttpClient _client;
-    private readonly AuthenticationHelper _authenticationHelper;
-    public AuthenticationControllerIntegrationTests(ChatWebApplicationFactory factory)
-    {
-        _client = factory.CreateClient();
-        _authenticationHelper = new AuthenticationHelper(_client);
-    }
-
     [Theory]
     [InlineData("registerUser", "testuser@example.com", "Register123!", true)]
     [InlineData("invalidUser", "invalid@example.com", "InvalidPassword", false)]
@@ -35,22 +28,28 @@ public class AuthenticationControllerIntegrationTests : IClassFixture<ChatWebApp
         var content = new StringContent(JsonConvert.SerializeObject(registerModel), Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PostAsync("/auth/register", content);
+        var response = await Client.PostAsync("/auth/register", content);
 
         // Assert
-        if (expectedSuccess)
+        var exist = await CheckIfRecordExists("AspNetUsers", "UserName", username);
+        
+        using (new AssertionScope())
         {
-            response.EnsureSuccessStatusCode();
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var responseObject = JsonConvert.DeserializeObject<RegisterResponseDto>(responseContent);
-            Assert.Equal(true, responseObject.Successful);
+            exist.Should().Be(expectedSuccess);
+            if (expectedSuccess)
+            {
+                response.EnsureSuccessStatusCode();
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var responseObject = JsonConvert.DeserializeObject<RegisterResponseDto>(responseContent);
+                Assert.Equal(true, responseObject.Successful);
+            }
+            else
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
-        else
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Theory]
-    [InlineData("loginUser", "Login123!", true)]
+    [InlineData("loginUser", "loginUser123!", true)]
     [InlineData("invalidUser", "invalidPassword123!", false)]
     public async Task Login_ReturnsExpectedResult(string userName, string password, bool expectedResult)
     {
@@ -65,24 +64,25 @@ public class AuthenticationControllerIntegrationTests : IClassFixture<ChatWebApp
         var jsonContent = new StringContent(JsonConvert.SerializeObject(loginModelDto), Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PostAsync("/auth/login", jsonContent);
+        var response = await Client.PostAsync("/auth/login", jsonContent);
 
         // Assert
-        
-        var responseDto = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-        responseDto.Success.Should().Be(expectedResult);
+        using (new AssertionScope())
+        {
+            var responseDto = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+            responseDto.Success.Should().Be(expectedResult);
 
-        if (expectedResult)
-            response.EnsureSuccessStatusCode();
-        
-        else
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        
+            if (expectedResult)
+                response.EnsureSuccessStatusCode();
+
+            else
+                response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
     }
 
     [Theory]
-    [InlineData("ChangePassword123!", "newPassword123!", true)]
-    [InlineData("newPassword123!", "newPassword123", false)] // invalid type of new password
+    [InlineData("changePasswordUser123!", "newPassword123!", true)]
+    [InlineData("changePasswordUser123!", "newPassword123", false)] // invalid type of new password
     public async Task ChangePassword_ReturnsExpectedResult(string currentPassword, string newPassword, bool expectedResult)
     {
         // Arrange
@@ -95,22 +95,21 @@ public class AuthenticationControllerIntegrationTests : IClassFixture<ChatWebApp
 
         // Convert the object to JSON
         var jsonContent = new StringContent(JsonConvert.SerializeObject(changePasswordDto), Encoding.UTF8, "application/json");
-
-        // Get a valid authentication token
-        await _authenticationHelper.AddTokenToHeader("changePasswordUser", currentPassword);
+        await AuthHelper.AddTokenToHeader("changePasswordUser", currentPassword);
 
         // Act
-        var response = await _client.PostAsync("/auth/change_password", jsonContent);
+        var response = await Client.PostAsync("/auth/change_password", jsonContent);
 
         // Assert
-        if (expectedResult)
-            response.EnsureSuccessStatusCode();
+        using (new AssertionScope())
+        {
+            if (expectedResult)
+                response.EnsureSuccessStatusCode();
+            else
+                response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-        else
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-
-
-        var responseDto = await response.Content.ReadFromJsonAsync<ChangePasswordResponseDto>();
-        responseDto.Success.Should().Be(expectedResult);
+            var responseDto = await response.Content.ReadFromJsonAsync<ChangePasswordResponseDto>();
+            responseDto.Success.Should().Be(expectedResult);
+        }
     }
 }

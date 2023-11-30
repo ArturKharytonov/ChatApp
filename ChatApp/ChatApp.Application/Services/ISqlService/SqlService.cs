@@ -48,5 +48,15 @@ namespace ChatApp.Application.Services.ISqlService
         {
             return new SqlConnection(_connectionString);
         }
+        public async Task<T?> ExecuteScalarAsync<T>(string query, Dictionary<string, object> parameters)
+        {
+            await using var connection = CreateSqlConnection();
+
+            await connection.OpenAsync();
+            var command = connection.CreateCommand();
+            command.CommandText = query;
+            command.Parameters.AddRange(parameters.Select(kvp => new SqlParameter(kvp.Key, kvp.Value)).ToArray());
+            return (T)(await command.ExecuteScalarAsync())!;
+        }
     }
 }

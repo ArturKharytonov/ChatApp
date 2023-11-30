@@ -28,10 +28,11 @@
     [Parameter]
     public string Id { get; set; }
 
-    List<UserDto> ParticipantsList { get; set; } = new List<UserDto>();
+    List<UserDto> ParticipantsList { get; set; } = new();
 
     [CascadingParameter]
     ISignalRService SignalRService { get; set; } = null!;
+
     [Inject]
     IUserApplicationService UserApplicationService { get; set; } = null!;
     [Inject]

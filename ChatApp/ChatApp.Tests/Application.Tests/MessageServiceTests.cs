@@ -42,12 +42,13 @@ namespace ChatApp.Tests.Application.Tests
             };
 
             _fixture.UnitOfWork.Setup(u => u.GetRepository<Room, int>()).Returns(_fixture.RoomRepositoryMock.Object);
-            _fixture.SetupRoomRepository(room);
+            _fixture.RoomRepositoryMock.Setup(r => r.GetAllAsQueryableAsync()).ReturnsAsync(new List<Room> { room }.AsQueryable());
 
             // Act
             var result = await _fixture.MessageService.GetMessagesFromChat(roomId);
 
             // Assert
+
             Assert.NotNull(result);
             Assert.Single(result);
 

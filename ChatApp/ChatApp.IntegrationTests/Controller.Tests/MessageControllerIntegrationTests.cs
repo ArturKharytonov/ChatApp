@@ -1,37 +1,52 @@
 ﻿using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.Enums;
+using FluentAssertions;
+using FluentAssertions.Execution;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using Newtonsoft.Json;
 using System.Text;
 using System.Web;
+using Xunit.Sdk;
 
 namespace ChatApp.IntegrationTests.Controller.Tests;
 
 [Collection("Sequential")]
-public class MessageControllerIntegrationTests : IClassFixture<ChatWebApplicationFactory>
+public class MessageControllerIntegrationTests : TestBase
 {
-    private readonly HttpClient _client;
-    private readonly AuthenticationHelper _authHelper;
     private const string _userName = "UserAndMessages";
     private const string _userPassword = "UserAndMessages123!";
-    public MessageControllerIntegrationTests(ChatWebApplicationFactory factory)
-    {
-        _client = factory.CreateClient();
-        _authHelper = new AuthenticationHelper(_client);
-    }
 
+    [Fact]
+    public async Task GetAllMessagesAsync_ReturnsOk()
+    {
+        // Arrange
+        var roomId = 1;
+        await AuthHelper.AddTokenToHeader(_userName, _userPassword);
+
+        // Act
+        var response = await Client.GetAsync($"/api/message/all/{roomId}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+    }
     [Fact]
     public async Task DeleteMessageAsync_ReturnsOk()
     {
         // Arrange
         var messageId = 1;
+        await AuthHelper.AddTokenToHeader(_userName, _userPassword);
 
-        await _authHelper.AddTokenToHeader(_userName, _userPassword);
         // Act
-        var response = await _client.DeleteAsync($"/api/message?messageId={messageId}");
+        var response = await Client.DeleteAsync($"/api/message?messageId={messageId}");
 
         // Assert
-        response.EnsureSuccessStatusCode();
+        var messageExists = await CheckIfRecordExists("Messages", "Id", messageId);
+        using (new AssertionScope())
+        {
+            response.EnsureSuccessStatusCode();
+            messageExists.Should().BeFalse();
+        }
     }
 
     [Fact]
@@ -47,16 +62,17 @@ public class MessageControllerIntegrationTests : IClassFixture<ChatWebApplicatio
             Sorting = true
         };
 
-        await _authHelper.AddTokenToHeader(_userName, _userPassword);
+        await AuthHelper.AddTokenToHeader(_userName, _userPassword);
 
         var queryString = GenerateQueryString(gridModelDto);
         var requestUrl = $"/api/message/page?{queryString}";
 
         // Act
-        var response = await _client.GetAsync(requestUrl);
+        var response = await Client.GetAsync(requestUrl);
 
         // Assert
-        response.EnsureSuccessStatusCode();
+        using (new AssertionScope())
+            response.EnsureSuccessStatusCode();
     }
 
     [Fact]
@@ -73,13 +89,14 @@ public class MessageControllerIntegrationTests : IClassFixture<ChatWebApplicatio
 
         var jsonContent = new StringContent(JsonConvert.SerializeObject(message), Encoding.UTF8, "application/json");
 
-        await _authHelper.AddTokenToHeader(_userName, _userPassword);
+        await AuthHelper.AddTokenToHeader(_userName, _userPassword);
 
         // Act
-        var response = await _client.PostAsync("/api/message", jsonContent);
+        var response = await Client.PostAsync("/api/message", jsonContent);
 
         // Assert
-        response.EnsureSuccessStatusCode();
+        using (new AssertionScope())
+            response.EnsureSuccessStatusCode();
     }
 
     [Fact]
@@ -95,14 +112,23 @@ public class MessageControllerIntegrationTests : IClassFixture<ChatWebApplicatio
             SenderUsername = "UserAndMessages"
         };
         var jsonContent = new StringContent(JsonConvert.SerializeObject(messageDto), Encoding.UTF8, "application/json");
-        await _authHelper.AddTokenToHeader(_userName, _userPassword);
+        await AuthHelper.AddTokenToHeader(_userName, _userPassword);
 
         // Act
-        var response = await _client.PutAsync("/api/message", jsonContent);
+        var response = await Client.PutAsync("/api/message", jsonContent);
 
         // Assert
-        response.EnsureSuccessStatusCode();
+        var messageWithOldContentExists = await CheckIfRecordExists("Messages", "Content", "Hello world.");
+        var messageWithNewContentExists = await CheckIfRecordExists("Messages", "Content", "Hello, this is updated message.");
+
+        using (new AssertionScope())
+        {
+            response.EnsureSuccessStatusCode();
+            messageWithNewContentExists.Should().BeTrue();
+            messageWithOldContentExists.Should().BeFalse();
+        }
     }
+
     private static string GenerateQueryString(GridModelDto<MessageColumnsSorting> gridModelDto)
     {
         var queryParameters = new System.Collections.Specialized.NameValueCollection

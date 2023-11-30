@@ -33,6 +33,7 @@ namespace ChatApp.UI.Services.RtcService
             _localStorageService = localStorageService;
             _dialogService = dialogService;
         }
+
         public async Task StartAsync()
         {
             _hub = new HubConnectionBuilder()
@@ -71,9 +72,9 @@ namespace ChatApp.UI.Services.RtcService
                     OkButtonText = "Answer",
                     CancelButtonText = "Decline",
                 });
+
                 if(result.Value)
                     _nav.NavigateTo($"/roomcall?senderId={senderId}&getterId={getterId}&requestCall=true");
-
                 else
                     await ConfirmationResponse(channel, result.Value);
             });
@@ -97,7 +98,6 @@ namespace ChatApp.UI.Services.RtcService
             });
 
             await _hub.StartAsync();
-
             await RegisterUserSignalGroupsAsync();
         }
         public async Task Join(string signalingChannel)

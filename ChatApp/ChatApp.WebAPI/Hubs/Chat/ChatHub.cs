@@ -10,7 +10,7 @@ namespace ChatApp.WebAPI.Hubs.Chat
     {
         private const string _online = "Online";
         private const string _offline = "Offline";
-        private static Dictionary<string, List<UserDto>> callParticipants = new Dictionary<string, List<UserDto>>();
+        private static Dictionary<string, List<UserDto>> callParticipants = new();
 
         //call
         public async Task NotifyAboutCall(string roomId, string roomName, string userName)
@@ -22,6 +22,7 @@ namespace ChatApp.WebAPI.Hubs.Chat
                 .Groups(roomId + _offline)
                 .SendAsync("CallStarted", roomName, userName);
         }
+
         public async Task JoinCall(string roomName, UserDto user)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, roomName);

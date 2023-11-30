@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.WebAPI.Hubs.Call
 {
-    [Authorize]
     public class CallHub : Hub
     {
         private readonly IEnumerable<string> calls = new List<string>();

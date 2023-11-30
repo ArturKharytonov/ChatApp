@@ -29,8 +29,12 @@ namespace ChatApp.Application.Services.MessageService
 
         public async Task<IEnumerable<MessageDto>> GetMessagesFromChat(string roomId)
         {
-            var room = await _unitOfWork.GetRepository<Room, int>()!
-                .GetByIdAsync(int.Parse(roomId), r => r.Users, r => r.Messages);
+            var roomsQuery = await _unitOfWork.GetRepository<Room, int>()!.GetAllAsQueryableAsync();
+
+            var room = roomsQuery
+                .Include(r => r.Messages)
+                .ThenInclude(m => m.Sender)
+                .FirstOrDefault(r => r.Id == int.Parse(roomId));
 
             var messages = room!.Messages
                 .Select(x => new MessageDto
@@ -39,7 +43,7 @@ namespace ChatApp.Application.Services.MessageService
                 Content = x.Content,
                 SentAt = x.SentAt,
                 RoomName = x.Room.Name,
-                SenderUsername = x.Sender.UserName
+                SenderUsername = x.Sender.UserName!
             });
 
             return messages;
