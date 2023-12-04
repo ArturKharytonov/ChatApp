@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using ChatApp.Application.Services.MessageService.Interfaces;
+﻿using ChatApp.Application.Services.MessageService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;

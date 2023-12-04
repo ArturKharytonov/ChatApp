@@ -92,11 +92,13 @@
     [CascadingParameter]
     ISignalRService SignalRService { get; set; } = null!;
 
+
+
     protected override async Task OnInitializedAsync()
     {
         //TODO: check if current user is participant
         var room = await RoomApplicationService.GetRoomAsync(Id);
-
+        
         if (room.Name.IsNullOrEmpty())
         {
             NavigationManager.NavigateTo("/roomgrid");
@@ -185,13 +187,14 @@
 
     void OnMessageDelete(MessageDto message)
     {
+        _isEditing.InProcess = false;
         Messages = Messages.Where(m => m.Id != message.Id).ToList();
         StateHasChanged();
     }
 
     void OnMessageUpdate(MessageDto message)
     {
-        Messages.FirstOrDefault(m => m.Id == message.Id)!.Content = message.Content;
+        Messages.LastOrDefault(m => m.Id == message.Id)!.Content = message.Content;
         StateHasChanged();
     }
 

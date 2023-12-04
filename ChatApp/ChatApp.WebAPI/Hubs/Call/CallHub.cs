@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.WebAPI.Hubs.Call
 {
@@ -10,7 +9,6 @@ namespace ChatApp.WebAPI.Hubs.Call
         public async Task Join(string channel)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, channel);
-            await Clients.OthersInGroup(channel).SendAsync("Join", Context.ConnectionId);
         }
         public async Task HangUp(string channel)
         {

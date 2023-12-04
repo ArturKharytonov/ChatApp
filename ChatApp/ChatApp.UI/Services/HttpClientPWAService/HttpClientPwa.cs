@@ -7,20 +7,27 @@ namespace ChatApp.UI.Services.HttpClientPWAService
 {
     public class HttpClientPwa : IHttpClientPwa
     {
-        public const string LoginUrl = "https://localhost:7223/auth/login";
-        public const string RegisterUrl = "https://localhost:7223/auth/register";
-        public const string ChangePasswordUrl = "https://localhost:7223/auth/change_password";
-        public const string GetUser = "https://localhost:7223/api/user";
-        public const string UpdateUserCredentials = "https://localhost:7223/api/user/credentials";
-        public const string GetUsersBySearch = "https://localhost:7223/api/user/page?";
-        public const string GetRoomsBySearch = "https://localhost:7223/api/rooms/page?";
-        public const string GetMessagesBySearch = "https://localhost:7223/api/message/page?";
-        public const string GetAllMessagesFromChat = "https://localhost:7223/api/message/all/";
-        public const string CreateRoom = "https://localhost:7223/api/rooms/creating?";
-        public const string GetRoom = "https://localhost:7223/api/rooms?";
-        public const string GetUserRooms = "https://localhost:7223/api/user/rooms";
-        public const string AddUserToRoom = "https://localhost:7223/api/user";
-        public const string Message = "https://localhost:7223/api/message";
+        public static string LoginUrl => GetApiUrl("/auth/login");
+        public static string RegisterUrl => GetApiUrl("/auth/register");
+        public static string ChangePasswordUrl => GetApiUrl("/auth/change_password");
+        public static string GetUser => GetApiUrl("/api/user");
+        public static string UpdateUserCredentials => GetApiUrl("/api/user/credentials");
+        public static string GetUsersBySearch => GetApiUrl("/api/user/page?");
+        public static string GetRoomsBySearch => GetApiUrl("/api/rooms/page?");
+        public static string GetMessagesBySearch => GetApiUrl("/api/message/page?");
+        public static string GetAllMessagesFromChat => GetApiUrl("/api/message/all/");
+        public static string CreateRoom => GetApiUrl("/api/rooms/creating?");
+        public static string GetRoom => GetApiUrl("/api/rooms?");
+        public static string GetUserRooms => GetApiUrl("/api/user/rooms");
+        public static string AddUserToRoom => GetApiUrl("/api/user");
+        public static string Message => GetApiUrl("/api/message");
+
+        private static string GetApiUrl(string endpoint)
+        {
+            var apiUrl = Environment.GetEnvironmentVariable("API_URL"); 
+
+            return $"{apiUrl}{endpoint}";
+        }
 
         private HttpClient HttpClient { get; set; }
         public HttpClientPwa(HttpClient httpClient)
@@ -32,7 +39,7 @@ namespace ChatApp.UI.Services.HttpClientPWAService
         {
             var result = await HttpClient.PostAsJsonAsync(requestUrl, data);
 
-            return (result.StatusCode.Equals(HttpStatusCode.Unauthorized) && !result.IsSuccessStatusCode)
+            return result.StatusCode.Equals(HttpStatusCode.Unauthorized) && !result.IsSuccessStatusCode
                 ? new ApiRequestResult<VResult>
                 {
                     Success = result.IsSuccessStatusCode,
@@ -86,7 +93,6 @@ namespace ChatApp.UI.Services.HttpClientPWAService
         {
             await HttpClient.DeleteAsync(url);
         }
-
         public void TryAddJwtToken(string token)
         {
             HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

@@ -45,4 +45,10 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
+if (builder.HostEnvironment.IsDevelopment())
+    Environment.SetEnvironmentVariable("API_URL", "https://localhost:7223");
+
+else if (builder.HostEnvironment.IsProduction())
+    Environment.SetEnvironmentVariable("API_URL", "https://apichatappkh.azurewebsites.net");
+
 await builder.Build().RunAsync();

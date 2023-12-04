@@ -70,6 +70,7 @@
     [Parameter]
     [SupplyParameterFromQuery(Name = "requestCall")]
     public string? RequestCallValue { get; set; }
+
     protected bool CallRequested => !string.IsNullOrWhiteSpace(RequestCallValue) && RequestCallValue.Equals("true", StringComparison.OrdinalIgnoreCase);
     protected string _channel => $"video-{SenderId}-{GetterId}";
 
@@ -86,10 +87,12 @@
         if (CallRequested)
             await RtcService.ConfirmationResponse(_channel, CallRequested);
     }
+
     protected async Task AskForConfirmation()
     {
         await RtcService.AskForConfirmation(_channel, SenderId, GetterId);
     }
+
     protected async Task StartAction()
     {
         if (string.IsNullOrWhiteSpace(_channel)) return;
@@ -102,6 +105,7 @@
         RtcService.OnHangUp += OnHangUp;
         await Console.Out.WriteLineAsync("Video added");
     }
+
     protected async void RtcOnOnRemoteStreamAcquired(object? _, IJSObjectReference e)
     {
         if (_module == null) throw new InvalidOperationException();
@@ -110,6 +114,7 @@
         _hangupDisabled = false;
         StateHasChanged();
     }
+
     protected async Task HangupAction()
     {
         await RtcService.Hangup();
@@ -118,6 +123,7 @@
         await _module.InvokeVoidAsync("setRemoteStreamToNull");
         NavigationManager.NavigateTo("/");
     }
+
     protected async void OnHangUp()
     {
         _callDisabled = false;
@@ -125,11 +131,13 @@
         await _module.InvokeVoidAsync("setRemoteStreamToNull");
         NavigationManager.NavigateTo("/");
     }
+
     protected void OnCallAccepted()
     {
         _callDisabled = true;
         _hangupDisabled = false;
     }
+
     async void LocationChanged(object sender, LocationChangedEventArgs e)
     {
         if (_callDisabled)
@@ -138,4 +146,3 @@
         await _module.InvokeVoidAsync("stopCameraAndMic", _stream);
     }
 }
-

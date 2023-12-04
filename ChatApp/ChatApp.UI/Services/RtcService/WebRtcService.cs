@@ -36,12 +36,17 @@ namespace ChatApp.UI.Services.RtcService
 
         public async Task StartAsync()
         {
+            var apiUrl = Environment.GetEnvironmentVariable("API_URL");
+
+            await Console.Out.WriteLineAsync($"{apiUrl}/callHub");
+
             _hub = new HubConnectionBuilder()
-                .WithUrl(_nav.ToAbsoluteUri("https://localhost:7223/callHub"), o => o.AccessTokenProvider =
+                .WithUrl($"{apiUrl}/callHub", o => o.AccessTokenProvider =
                 async () => await _localStorageService.GetItemAsync<string>("token"))
                 .Build();
+
             _jsModule = await _js.InvokeAsync<IJSObjectReference>(
-                "import", "/WebRtcService.cs.js");
+                "import", "./WebRtcService.cs.js");
 
             _jsThis = DotNetObjectReference.Create(this);
             await _jsModule.InvokeVoidAsync("initialize", _jsThis);
@@ -72,8 +77,7 @@ namespace ChatApp.UI.Services.RtcService
                     OkButtonText = "Answer",
                     CancelButtonText = "Decline",
                 });
-
-                if(result.Value)
+                if(result!.Value)
                     _nav.NavigateTo($"/roomcall?senderId={senderId}&getterId={getterId}&requestCall=true");
                 else
                     await ConfirmationResponse(channel, result.Value);
@@ -85,9 +89,9 @@ namespace ChatApp.UI.Services.RtcService
                 {
                     OnCallAccepted.Invoke();
                     await Call();
+                    return;
                 }
-                else
-                    await _dialogService.Alert("It seems that user is busy", "Call declined!");
+                await _dialogService.Alert("It seems that user is busy", "Call declined!");
             });
 
             _hub.On("HangUp", async () =>
@@ -104,7 +108,7 @@ namespace ChatApp.UI.Services.RtcService
         {
             _signalingChannel = signalingChannel;
             var hub = await GetHub();
-            await hub.SendAsync("join", signalingChannel);
+            await hub.SendAsync("Join", signalingChannel);
         }
         public async Task<IJSObjectReference> StartLocalStream()
         {
@@ -139,7 +143,6 @@ namespace ChatApp.UI.Services.RtcService
             await _hub.SendAsync("ConfirmationResponse", channel, result);
         }
 
-
         [JSInvokable]
         public async Task SendOffer(string offer)
         {
@@ -172,12 +175,13 @@ namespace ChatApp.UI.Services.RtcService
         public async Task RegisterUserSignalGroupsAsync()
         {
             //var groupIds = new List<int>(); // get all groups ids where user exist
-            await _hub.SendAsync("RegisterMultipleGroupsAsync");
+            await _hub!.SendAsync("RegisterMultipleGroupsAsync");
         }
 
         public async Task AskForConfirmation(string channel, int senderId, int getterId)
         {
-            await _hub.SendAsync("AskForConfirmation", channel, senderId, getterId);
+            var hub = await GetHub();
+            await hub.SendAsync("AskForConfirmation", channel, senderId, getterId);
         }
     }
 }

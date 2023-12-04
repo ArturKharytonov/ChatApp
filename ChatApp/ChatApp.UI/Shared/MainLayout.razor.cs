@@ -1,9 +1,7 @@
-﻿using Blazored.LocalStorage;
-using ChatApp.UI.Services.RtcService.Interfaces;
+﻿using ChatApp.UI.Services.RtcService.Interfaces;
 using ChatApp.UI.Services.SignalRService.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.IdentityModel.Tokens;
 
 namespace ChatApp.UI.Shared
 {

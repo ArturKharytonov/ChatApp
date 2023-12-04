@@ -14,9 +14,11 @@ const offerOptions = {
 const servers = {
     iceServers: [
         {
-            urls: "turn:coturn.myserver.com:3478",
-            username: "username",
-            credential: "password"
+            urls: "TURN:freestun.net:3479",
+            username: "free",
+            credential: "free"
+
+            //urls: "turn:coturn.myserver.com:3478",
         }
     ]
 }
@@ -117,6 +119,8 @@ export function hangupAction() {
     peerConnection.close();
     peerConnection = null;
     console.log("Ending call.");
+    isOffered = false;
+    isOffering = false;
 }
 
 // Handles remote MediaStream success by handing the stream to the blazor component.

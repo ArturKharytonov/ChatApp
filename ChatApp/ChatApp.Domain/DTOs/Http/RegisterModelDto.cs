@@ -13,9 +13,8 @@ namespace ChatApp.Domain.DTOs.Http
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
-        [Required]
         [EmailAddress]
         [Display(Name = "Email")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
     }
 }

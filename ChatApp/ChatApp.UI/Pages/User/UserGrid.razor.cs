@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using ChatApp.UI.Services.UserApplicationService.Interfaces;
 using IAuthenticationService = ChatApp.UI.Services.AuthenticationService.Interfaces.IAuthenticationService;
+using ChatApp.UI.Services.SignalRService.Interfaces;
 
 namespace ChatApp.UI.Pages.User
 {
@@ -35,6 +36,9 @@ namespace ChatApp.UI.Pages.User
         private string _userId;
         [Inject] public IUserApplicationService UserApplicationService { get; set; }
         [Inject] protected IAuthenticationService _authenticationService { get; set; }
+
+        [CascadingParameter]
+        ISignalRService WebRtcService { get; set; } = null!;
         protected override async Task OnInitializedAsync()
         {
             var authenticationState = await authenticationStateTask;

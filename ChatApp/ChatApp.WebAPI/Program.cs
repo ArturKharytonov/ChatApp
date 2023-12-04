@@ -37,9 +37,9 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
         builder.Services.AddDbContext<ChatDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 
         builder.Services.AddIdentity<User, IdentityRole<int>>()
             .AddEntityFrameworkStores<ChatDbContext>()
@@ -153,15 +153,16 @@ public class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
+        //if (app.Environment.IsDevelopment())
+        //{
+            
+        //}
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
         app.UseHttpsRedirection();
-        app.UseRouting();
         app.UseCors();
+        app.UseRouting();
 
         app.UseAuthentication();
         app.UseAuthorization();
