@@ -7,6 +7,7 @@ using ChatApp.Domain.Users;
 using ChatApp.Tests.Fixtures.Services;
 using Moq;
 using FluentAssertions;
+using File = ChatApp.Domain.Files.File;
 
 namespace ChatApp.Tests.Application.Tests
 {
@@ -26,15 +27,24 @@ namespace ChatApp.Tests.Application.Tests
             var room = new Room
             {
                 Id = roomId,
-                Name = roomName
+                Name = roomName,
+                AssistantId = String.Empty
             };
+            var files = new List<File>().AsQueryable();
 
             _fixture.UnitOfWorkMock
                 .Setup(u => u.GetRepository<Room, int>())
                 .Returns(_fixture.RoomRepositoryMock.Object);
+            _fixture.UnitOfWorkMock
+                .Setup(u => u.GetRepository<File, string>())
+                .Returns(_fixture.FileRepositoryMock.Object);
+
 
             _fixture.RoomRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(room);
+
+            _fixture.FileRepositoryMock.Setup(r => r.GetAllAsQueryableAsync())
+                .ReturnsAsync(files);
 
             // Act
             var result = await _fixture.RoomService.GetRoom(roomId);
@@ -53,7 +63,7 @@ namespace ChatApp.Tests.Application.Tests
             _fixture.SetupCreateRoomTest(creatorId, expectedRoomId);
 
             // Act
-            var result = await _fixture.RoomService.CreateRoom(roomName, creatorId.ToString());
+            var result = await _fixture.RoomService.CreateRoom(roomName, creatorId.ToString(), ""); // add assistant id
 
             // Assert
             Assert.Equal(expectedRoomId, result);

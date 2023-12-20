@@ -1,10 +1,14 @@
 using Blazored.LocalStorage;
 using ChatApp.UI;
 using ChatApp.UI.Services.CustomAuthenticationState;
+using ChatApp.UI.Services.FIleApplicationService;
+using ChatApp.UI.Services.FIleApplicationService.Interfaces;
 using ChatApp.UI.Services.HttpClientPWAService;
 using ChatApp.UI.Services.HttpClientPWAService.Interfaces;
 using ChatApp.UI.Services.MessageApplicationService;
 using ChatApp.UI.Services.MessageApplicationService.Interfaces;
+using ChatApp.UI.Services.OpenAiService;
+using ChatApp.UI.Services.OpenAiService.Interfaces;
 using ChatApp.UI.Services.RoomApplicationService;
 using ChatApp.UI.Services.RoomApplicationService.Interfaces;
 using ChatApp.UI.Services.RtcService;
@@ -36,7 +40,9 @@ builder.Services.AddScoped<DialogService>();
 
 builder.Services.AddScoped<ISignalRService, SignalRService>();
 builder.Services.AddScoped<IWebRtcService, WebRtcService>();
+builder.Services.AddScoped<IOpenAiService, OpenAiService>();
 
+builder.Services.AddScoped<IFileApplicationService, FileApplicationService>();
 builder.Services.AddScoped<IMessageApplicationService, MessageApplicationService>();
 builder.Services.AddScoped<IRoomApplicationService, RoomApplicationService>();
 builder.Services.AddScoped<IUserApplicationService, UserApplicationService>();

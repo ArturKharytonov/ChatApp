@@ -2,6 +2,7 @@
 using ChatApp.UI.Services.SignalRService.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
 
 namespace ChatApp.UI.Shared
 {

@@ -1,0 +1,218 @@
+﻿@using HigLabo.OpenAI
+@using ChatApp.UI.Services.OpenAiService.Interfaces
+@using ChatApp.UI.Services.RoomApplicationService.Interfaces
+@using ChatApp.Domain.DTOs.Http
+@using System.Security.Claims
+@using ChatApp.Domain.DTOs.FileDto
+@using ChatApp.Domain.DTOs.Http.Responses
+@using ChatApp.UI.Services.FIleApplicationService.Interfaces
+@page "/fileupload"
+@attribute [Authorize]
+
+@if (IsProccessing)
+{
+    <div class="spinner"></div>
+}
+else
+{
+    <div class="form-group">
+        <form @onsubmit="UploadFile" class="mt-4">
+            <div class="mb-3">
+                <small class="text-muted">Select a file to upload</small>
+                <InputFile OnChange="@LoadFiles" class="form-control custom-file-input" />
+            </div>
+
+            <div class="mb-3">
+                <input type="text" class="form-control" id="roomName" @bind="_roomName" placeholder="Enter Room Name" style="width: 250px;" />
+            </div> 
+
+            <button type="submit" class="btn btn-outline-danger">
+                Upload to Assistant 🚀
+            </button>
+        </form>
+
+        <RadzenDataGrid FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        Data="@FilesFromResponse.Files" TItem="FileDto" ColumnWidth="150px" AllowPaging="true" PageSize="5">
+            <Columns>
+                <RadzenDataGridColumn TItem="FileDto" Property="FileName" Title="File name"></RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="FileDto" Property="RoomName" Title="Room name"></RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="FileDto" Title="Actions">
+                    <Template Context="file">
+                        <button class="btn btn-danger" @onclick="@(() => DeleteFile(file))">Delete</button>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+}
+
+<style>
+    .spinner {
+        border: 16px solid silver;
+        border-top: 16px solid #9370db;
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        animation: spin 700ms linear infinite;
+        top: 40%;
+        left: 55%;
+        position: absolute;
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg)
+        }
+
+        100% {
+            transform: rotate(360deg)
+        }
+    }
+    form {
+        background-color: #f8f8f8;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
+
+    .custom-file-input {
+        width: 250px;
+    }
+    small {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 14px;
+        color: #777;
+    }
+
+    .form-control {
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+        background-color: #fff;
+        transition: border-color 0.3s;
+    }
+
+    input::placeholder {
+        color: #999;
+    }
+</style>
+
+@code {
+    private IBrowserFile? File { get; set; }
+    private string _roomName;
+    private string _userId;
+    private string _userName;
+    private bool IsProccessing;
+
+    private FilesFromUserResponseDto FilesFromResponse = new();
+    [Inject]
+    private IOpenAiService OpenAiService { get; set; } = null!;
+    [Inject]
+    private IRoomApplicationService RoomApplicationService { get; set; } = null!;
+    [Inject]
+    private IFileApplicationService FileApplicationService { get; set; } = null!;
+    [Inject]
+    public AuthenticationStateProvider StateProvider { get; set; } = null!;
+    [Inject]
+    public NotificationService NotificationService { get; set; } = null!;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationResult = await StateProvider.GetAuthenticationStateAsync();
+        _userId = authenticationResult.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+        _userName = authenticationResult.User.FindFirst(ClaimTypes.Name)?.Value!;
+        FilesFromResponse = await FileApplicationService.GetAllFilesFromSpecificUser(_userId);
+    }
+
+    private async Task UploadFile()
+    {
+        if (File is not null && !string.IsNullOrEmpty(_roomName))
+        {
+            //TODO: check if user belongs to this room else
+            var room = await RoomApplicationService.GetRoomByNameAsync(_roomName);
+
+            if (room.Name is null)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Summary = "Room does not exist or you are not participant!",
+                    Severity = NotificationSeverity.Error,
+                    Duration = 3000
+                });
+                return;
+            }
+            IsProccessing = true;
+            var fileContent = await ConvertFileToByteArray();
+
+            StateHasChanged();
+            var fileUploadParameter = new FileUploadParameter();
+            fileUploadParameter.SetFile(File.Name, fileContent);
+            fileUploadParameter.Purpose = "assistants";
+
+            var fileId = await OpenAiService.UploadFile(fileUploadParameter);
+
+            await FileApplicationService.AddFileToRoomAsync(new UploadingRequestDto
+            {
+                FileId = fileId,
+                RoomId = room.Id.ToString(),
+                SenderId = _userId,
+                FileName = File.Name
+            });
+            
+            NotificationService.Notify(new NotificationMessage
+            {
+                Summary = "File was uploaded",
+                Severity = NotificationSeverity.Success,
+                Duration = 3000
+            });
+            File = null;
+
+            FilesFromResponse = await FileApplicationService.GetAllFilesFromSpecificUser(_userId);
+            IsProccessing = false;
+            StateHasChanged();
+            return;
+        }
+        NotificationService.Notify(new NotificationMessage
+        {
+            Summary = "Choose file and type name of group",
+            Severity = NotificationSeverity.Warning,
+            Duration = 3000,
+        });
+    }
+
+    private async Task<byte[]> ConvertFileToByteArray()
+    {
+        var buffer = new byte[File.Size];
+        await using var stream = File.OpenReadStream();
+        await stream.ReadAsync(buffer, 0, (int)File.Size);
+        return buffer;
+    }
+
+    private void LoadFiles(InputFileChangeEventArgs e)
+    {
+        File = e.File;
+    }
+
+    private async Task DeleteFile(FileDto file)
+    {
+        IsProccessing = true;
+        StateHasChanged();
+        var room = await RoomApplicationService.GetRoomByNameAsync(file.RoomName);
+
+        await OpenAiService.DeleteFileFromAssistant(room.AssistantId,file.Id);
+        await FileApplicationService.DeleteFile(file.Id);
+        NotificationService.Notify(new NotificationMessage
+            {
+                Summary = "File was deleted",
+                Severity = NotificationSeverity.Success,
+                Duration = 3000,
+            });
+        FilesFromResponse = await FileApplicationService.GetAllFilesFromSpecificUser(_userId);
+        IsProccessing = false;
+        StateHasChanged();
+    }
+}

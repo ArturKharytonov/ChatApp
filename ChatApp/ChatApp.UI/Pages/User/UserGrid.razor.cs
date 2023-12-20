@@ -37,8 +37,6 @@ namespace ChatApp.UI.Pages.User
         [Inject] public IUserApplicationService UserApplicationService { get; set; }
         [Inject] protected IAuthenticationService _authenticationService { get; set; }
 
-        [CascadingParameter]
-        ISignalRService WebRtcService { get; set; } = null!;
         protected override async Task OnInitializedAsync()
         {
             var authenticationState = await authenticationStateTask;

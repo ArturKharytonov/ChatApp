@@ -1,9 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChatApp.Domain.DTOs.Http
 {
@@ -12,5 +7,9 @@ namespace ChatApp.Domain.DTOs.Http
         [SupplyParameterFromQuery]
         [Parameter]
         public string Name { get; set; } = null!;
+
+        [SupplyParameterFromQuery] 
+        [Parameter] 
+        public string AssistantId { get; set; } = null!;
     }
 }

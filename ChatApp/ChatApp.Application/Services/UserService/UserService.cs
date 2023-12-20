@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using ChatApp.Application.Services.QueryBuilder.Interfaces;
 using ChatApp.Application.Services.UserService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
@@ -9,6 +10,7 @@ using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Application.Services.UserService
 {
@@ -109,6 +111,16 @@ namespace ChatApp.Application.Services.UserService
                 Items = userInformation,
                 TotalCount = totalCount
             });
+        }
+
+        public async Task<List<UserDto>> GetAllUsers()
+        {
+            var users = await _userManager.Users.ToListAsync();
+            return users.Select(user => new UserDto
+            {
+                Id = user.Id,
+                Username = user.UserName!
+            }).ToList();
         }
 
         private async Task<bool> DoesUsernameExistAsync(string username)

@@ -50,6 +50,13 @@ namespace ChatApp.UI.Services.UserApplicationService
             return result.Result;
         }
 
+        public async Task<AllUsersResponseDto> GetAllUsers()
+        {
+            var result = await _clientPwa.GetAsync<AllUsersResponseDto>(HttpClientPwa.GetAllUsers);
+
+            return result.Result;
+        }
+
         private static string GenerateQueryString(GridModelDto<UserColumnsSorting> gridModelDto)
         {
             var queryParameters = new System.Collections.Specialized.NameValueCollection

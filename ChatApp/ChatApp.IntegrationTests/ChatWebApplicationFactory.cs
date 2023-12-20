@@ -83,9 +83,9 @@ public class ChatWebApplicationFactory : WebApplicationFactory<Program>
     {
         return new List<Room>
         {
-            new() { Name = "roomForMessages"},
-            new() { Name = "roomForGetting" },
-            new() { Name = "roomForParticipants" }
+            new() { Name = "roomForMessages", AssistantId = "123"},
+            new() { Name = "roomForGetting",AssistantId = "123" },
+            new() { Name = "roomForParticipants", AssistantId = "123"}
         };
     }
 

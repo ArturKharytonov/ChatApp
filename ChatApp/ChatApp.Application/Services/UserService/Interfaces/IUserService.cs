@@ -14,5 +14,6 @@ namespace ChatApp.Application.Services.UserService.Interfaces
         Task<bool> UpdateUserAsync(UserDto user);
         Task<User?> GetUserAsync(string id);
         Task<GridModelResponse<UserDto>> GetUsersPageAsync(GridModelDto<UserColumnsSorting> data);
+        Task<List<UserDto>> GetAllUsers();
     }
 }

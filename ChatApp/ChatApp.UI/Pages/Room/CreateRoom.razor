@@ -1,5 +1,6 @@
 ﻿@page "/createroom"
 @using ChatApp.Domain.DTOs.Http
+@using ChatApp.UI.Services.OpenAiService.Interfaces
 @using ChatApp.UI.Services.RoomApplicationService.Interfaces
 @using ChatApp.UI.Services.SignalRService.Interfaces
 @inject NavigationManager Navigation
@@ -26,6 +27,7 @@
 
     [CascadingParameter] ISignalRService SignalRService { get; set; }
     [Inject] private IRoomApplicationService _roomApplicationService { get; set; }
+    [Inject] private IOpenAiService _openAiService { get; set; }
 
     private void CloseWindow()
     {

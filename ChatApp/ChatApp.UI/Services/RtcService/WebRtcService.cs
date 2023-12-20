@@ -1,9 +1,13 @@
 ﻿using Blazored.LocalStorage;
+using ChatApp.Domain.Users;
 using ChatApp.UI.Services.RtcService.Interfaces;
+using ChatApp.UI.Services.UserApplicationService.Interfaces;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.JSInterop;
 using Radzen;
+using System.Security.Claims;
 
 
 namespace ChatApp.UI.Services.RtcService
@@ -20,18 +24,22 @@ namespace ChatApp.UI.Services.RtcService
         public event EventHandler<IJSObjectReference>? OnRemoteStreamAcquired;
         public event Action OnCallAccepted;
         public event Action OnHangUp;
-
         private readonly DialogService _dialogService;
+
+        private readonly IUserApplicationService _userApplicationService;
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
 
         public WebRtcService(IJSRuntime js,
             NavigationManager nav,
             ILocalStorageService localStorageService,
-            DialogService dialogService)
+            DialogService dialogService, IUserApplicationService userApplicationService, AuthenticationStateProvider authenticationStateProvider)
         {
             _js = js;
             _nav = nav;
             _localStorageService = localStorageService;
             _dialogService = dialogService;
+            _userApplicationService = userApplicationService;
+            _authenticationStateProvider = authenticationStateProvider;
         }
 
         public async Task StartAsync()
@@ -42,7 +50,7 @@ namespace ChatApp.UI.Services.RtcService
 
             _hub = new HubConnectionBuilder()
                 .WithUrl($"{apiUrl}/callHub", o => o.AccessTokenProvider =
-                async () => await _localStorageService.GetItemAsync<string>("token"))
+                    async () => await _localStorageService.GetItemAsync<string>("token"))
                 .Build();
 
             _jsModule = await _js.InvokeAsync<IJSObjectReference>(
@@ -77,6 +85,7 @@ namespace ChatApp.UI.Services.RtcService
                     OkButtonText = "Answer",
                     CancelButtonText = "Decline",
                 });
+
                 if(result!.Value)
                     _nav.NavigateTo($"/roomcall?senderId={senderId}&getterId={getterId}&requestCall=true");
                 else
@@ -172,11 +181,16 @@ namespace ChatApp.UI.Services.RtcService
             OnRemoteStreamAcquired?.Invoke(this, stream);
         }
 
-        public async Task RegisterUserSignalGroupsAsync()
+        private async Task RegisterUserSignalGroupsAsync()
         {
-            //var groupIds = new List<int>(); // get all groups ids where user exist
-            await _hub!.SendAsync("RegisterMultipleGroupsAsync");
-        }
+            var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            if (state.User.Identity.IsAuthenticated)
+            {
+                var users = await _userApplicationService.GetAllUsers();
+                var userId = state.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                await _hub!.SendAsync("RegisterMultipleGroupsAsync", users.Users, int.Parse(userId!));
+            }
+        } 
 
         public async Task AskForConfirmation(string channel, int senderId, int getterId)
         {

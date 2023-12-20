@@ -18,8 +18,13 @@ export function setRemoteStreamToNull() {
 }
 
 export function stopCameraAndMic(stream) {
+    if (!stream) {
+        console.error('Stream is null or undefined.');
+        return;
+    }
+
     stream.getTracks().forEach((track) => {
-        if (track.readyState == 'live') {
+        if (track && track.readyState == 'live') {
             track.stop();
         }
     });

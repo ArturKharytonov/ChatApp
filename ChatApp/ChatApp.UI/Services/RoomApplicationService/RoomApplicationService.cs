@@ -22,9 +22,15 @@ namespace ChatApp.UI.Services.RoomApplicationService
             var result = await _clientPwa.GetAsync<RoomDto>(HttpClientPwa.GetRoom + "id=" + id);
             return result.Result;
         }
+        public async Task<RoomDto> GetRoomByNameAsync(string name)
+        {
+            var result = await _clientPwa.GetAsync<RoomDto>(HttpClientPwa.GetRoomByName + "name=" + name);
+            return result.Result;
+        }
         public async Task<AddRoomResponseDto> CreateRoomAsync(AddRoomDto dto)
         {
-            var result = await _clientPwa.GetAsync<AddRoomResponseDto>(HttpClientPwa.CreateRoom + "roomName=" + dto.Name);
+            var result = await _clientPwa.GetAsync<AddRoomResponseDto>(HttpClientPwa.CreateRoom 
+                                                                       + "roomName=" + dto.Name);
             return result.Result;
         }
         public async Task<GridModelResponse<RoomDto>> GetRoomsAsync(GridModelDto<RoomColumnsSorting> gridModelDto)

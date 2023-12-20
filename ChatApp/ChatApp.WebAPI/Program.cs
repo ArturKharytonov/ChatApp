@@ -1,6 +1,8 @@
 using System.Configuration;
 using System.Security.Claims;
 using System.Text;
+using ChatApp.Application.Services.FileService;
+using ChatApp.Application.Services.FileService.Interface;
 using ChatApp.Application.Services.ISqlService;
 using ChatApp.Application.Services.ISqlService.Interfaces;
 using ChatApp.Application.Services.JwtHandler;
@@ -22,6 +24,8 @@ using ChatApp.Domain.Users;
 using ChatApp.Persistence.Context;
 using ChatApp.Persistence.UnitOfWork;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
+using ChatApp.UI.Services.OpenAiService;
+using ChatApp.UI.Services.OpenAiService.Interfaces;
 using ChatApp.WebAPI.Hubs.Call;
 using ChatApp.WebAPI.Hubs.Chat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -104,7 +108,9 @@ public class Program
 
         builder.Services.AddScoped<IJwtService, JwtService>();
         builder.Services.AddScoped<IUserContext, UserContext>();
+        builder.Services.AddScoped<IOpenAiService, OpenAiService>();
 
+        builder.Services.AddScoped<IFileService, FileService>();
         builder.Services.AddScoped<IMessageService, MessageService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IRoomService, RoomService>();
@@ -153,10 +159,6 @@ public class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        //if (app.Environment.IsDevelopment())
-        //{
-            
-        //}
         app.UseSwagger();
         app.UseSwaggerUI();
 

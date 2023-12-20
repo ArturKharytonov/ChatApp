@@ -1,5 +1,4 @@
-﻿using System.Net;
-using ChatApp.Application.Services.UserContext.Interfaces;
+﻿using ChatApp.Application.Services.UserContext.Interfaces;
 using ChatApp.Application.Services.UserService.Interfaces;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.Http.Responses;
@@ -63,6 +62,11 @@ namespace ChatApp.WebAPI.Controllers
             return Ok(await _userService.GetUserAsync(userIdClaim));
         }
 
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            return Ok(new AllUsersResponseDto{Users = await _userService.GetAllUsers() });
+        }
 
         [HttpPost("credentials")]
         public async Task<IActionResult> ChangeUserCredentials([FromBody] UserDto user)
