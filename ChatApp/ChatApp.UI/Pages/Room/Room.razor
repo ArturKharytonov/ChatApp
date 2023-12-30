@@ -148,8 +148,8 @@
                 await OpenAiService.DeleteFileFromAssistant(_room.AssistantId, file.Id);
             }
         }
-        
         await OpenAiService.DeleteAssistant(_room.AssistantId);
+
         await MessageApplicationService.DeleteAllMessagesFromRoomAsync(_room.Id.ToString());
         await RoomApplicationService.DeleteRoom(_room.Id.ToString());
 
@@ -233,7 +233,6 @@
         var message = arg.Data as MessageDto;
         _room = await RoomApplicationService.GetRoomAsync(Id);
 
-        await OpenAiService.UploadFileToAssistant(_room);
         await OpenAiService.SendMessageAsync(_threadId, message!.Content);
 
         var runId = await OpenAiService.CreateRunAsync(_room.AssistantId, _threadId);

@@ -1,14 +1,16 @@
-﻿using ChatApp.Domain.DTOs.RoomDto;
+﻿using ChatApp.Domain.DTOs.FileDto;
+using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Infrastructure.Assistant;
 using ChatApp.UI.Services.OpenAiService.Interfaces;
 using HigLabo.OpenAI;
+using OpenAI.Files;
 using OpenAIClient = HigLabo.OpenAI.OpenAIClient;
 
 namespace ChatApp.UI.Services.OpenAiService;
 
 public class OpenAiService : IOpenAiService
 {
-    private const string ApiKey = "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";
+    private const string ApiKey = "YOUR-API-KEY";
     private const string _model = "gpt-3.5-turbo-1106";
     private readonly OpenAIClient _client;
 
@@ -40,7 +42,7 @@ public class OpenAiService : IOpenAiService
         _client.HttpClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", $"{ApiKey}");
         _client.HttpClient.DefaultRequestHeaders.Add("OpenAI-Beta", "assistants=v1");
-        await _client.HttpClient.DeleteAsync(url);
+        var re = await _client.HttpClient.DeleteAsync(url);
     }
 
     public async Task<string> CreateAssistantAsync(string roomName)
@@ -92,16 +94,11 @@ public class OpenAiService : IOpenAiService
         return await _client.AssistantRetrieveAsync(id);
     }
 
-    public async Task<string> UploadFile(FileUploadParameter parameter)
+    public async Task<string> UploadFile(FileUploadParameter parameter, string assistantId)
     {
         var res = await _client.FileUploadAsync(parameter);
+        await _client.AssistantFileCreateAsync(assistantId, res.Id);
         return res.Id;
-    }
-
-    public async Task UploadFileToAssistant(RoomDto room)
-    {
-        foreach (var fileDto in room.Files) 
-            await _client.AssistantFileCreateAsync(room.AssistantId, fileDto.Id);
     }
 
     public async Task DeleteFileFromAssistant(string assistantId, string fileId)
@@ -115,6 +112,5 @@ public class OpenAiService : IOpenAiService
 
         await _client.HttpClient.DeleteAsync(urlForAssistant);
         await _client.HttpClient.DeleteAsync(url);
-
     }
 }

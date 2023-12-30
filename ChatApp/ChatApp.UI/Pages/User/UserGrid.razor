@@ -35,7 +35,7 @@
         <RadzenDataGridColumn TItem="UserDto" Property="PhoneNumber" Title="PhoneNumber"></RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="UserDto">
             <Template Context="user">
-                @if (user.Username != _userName)
+                @if (user.Id.ToString() != _userId)
                 {
                     <RadzenButton Text="Call" ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat"
                                   Shade="Shade.Lighter" Icon="accessibility" class="m-1" Click="@(() => GoToCall(user))" />

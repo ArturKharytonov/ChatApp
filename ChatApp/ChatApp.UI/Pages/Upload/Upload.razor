@@ -131,7 +131,6 @@ else
         _userName = authenticationResult.User.FindFirst(ClaimTypes.Name)?.Value!;
         FilesFromResponse = await FileApplicationService.GetAllFilesFromSpecificUser(_userId);
         response = await UserApplicationService.GetAllUserGroups();
-
     }
 
     private async Task UploadFile()
@@ -158,7 +157,7 @@ else
             fileUploadParameter.SetFile(File.Name, fileContent);
             fileUploadParameter.Purpose = "assistants";
 
-            var fileId = await OpenAiService.UploadFile(fileUploadParameter);
+            var fileId = await OpenAiService.UploadFile(fileUploadParameter, room.AssistantId);
 
             await FileApplicationService.AddFileToRoomAsync(new UploadingRequestDto
             {
