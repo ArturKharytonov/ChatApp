@@ -1,5 +1,5 @@
-﻿using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Domain.DTOs.Http.Requests.Files;
+using ChatApp.Domain.DTOs.Http.Responses.Files;
 
 namespace ChatApp.UI.Services.FIleApplicationService.Interfaces;
 

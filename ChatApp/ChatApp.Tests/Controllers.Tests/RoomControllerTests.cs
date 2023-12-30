@@ -1,5 +1,6 @@
 ﻿using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
+using ChatApp.Domain.DTOs.Http.Responses.Rooms;
 using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Tests.Fixtures.Controllers;

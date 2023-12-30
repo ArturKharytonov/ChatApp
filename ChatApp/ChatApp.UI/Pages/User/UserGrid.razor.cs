@@ -3,13 +3,14 @@ using Microsoft.AspNetCore.Components;
 using Radzen;
 using ChatApp.UI.Pages.Common.ComponentHelpers;
 using ChatApp.Domain.DTOs.UserDto;
-using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.Enums;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
 using ChatApp.UI.Services.UserApplicationService.Interfaces;
 using IAuthenticationService = ChatApp.UI.Services.AuthenticationService.Interfaces.IAuthenticationService;
 using ChatApp.UI.Services.SignalRService.Interfaces;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 
 namespace ChatApp.UI.Pages.User
 {

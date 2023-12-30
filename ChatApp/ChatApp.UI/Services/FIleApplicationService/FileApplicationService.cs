@@ -1,8 +1,8 @@
-﻿using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Domain.DTOs.Http;
-using ChatApp.UI.Services.FIleApplicationService.Interfaces;
+﻿using ChatApp.UI.Services.FIleApplicationService.Interfaces;
 using ChatApp.UI.Services.HttpClientPWAService;
 using ChatApp.UI.Services.HttpClientPWAService.Interfaces;
+using ChatApp.Domain.DTOs.Http.Responses.Files;
+using ChatApp.Domain.DTOs.Http.Requests.Files;
 
 namespace ChatApp.UI.Services.FIleApplicationService;
 

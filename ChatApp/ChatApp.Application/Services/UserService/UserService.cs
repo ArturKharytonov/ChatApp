@@ -1,11 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using ChatApp.Application.Services.QueryBuilder.Interfaces;
+﻿using ChatApp.Application.Services.QueryBuilder.Interfaces;
 using ChatApp.Application.Services.UserService.Interfaces;
-using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
+using ChatApp.Domain.DTOs.Http.Requests.Users;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
+using ChatApp.Domain.Mappers.Users;
+using ChatApp.Domain.Messages;
 using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
@@ -20,12 +21,24 @@ namespace ChatApp.Application.Services.UserService
         private readonly IQueryBuilder<User> _queryBuilder;
         private readonly IUnitOfWork _unitOfWork;
         private const int _pageSize = 5;
-
         public UserService(UserManager<User> userManager, IQueryBuilder<User> queryBuilder, IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _queryBuilder = queryBuilder;
             _unitOfWork = unitOfWork;
+        }
+
+        public async Task DeleteUsersFromRoom(int roomId)
+        {
+            var rooms = await _unitOfWork.GetRepository<Room, int>()!.GetAllAsQueryableAsync();
+            var room = await rooms
+                .Include(x => x.Users)
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+
+            if (room == null || !room.Users.Any()) return;
+
+            foreach (var user in room.Users)
+                await DeleteUserAsync(user.Id);
         }
 
         public async Task<User?> GetWithAll(string id)
@@ -70,8 +83,8 @@ namespace ChatApp.Application.Services.UserService
         {
             var existingUser = await _userManager.FindByIdAsync(user.Id.ToString());
 
-            if(existingUser == null || (await DoesUsernameExistAsync(user.Username) &&
-                                        !user.Username.Equals(existingUser.UserName))) 
+            if (existingUser == null || (await DoesUsernameExistAsync(user.Username) &&
+                                        !user.Username.Equals(existingUser.UserName)))
                 return false;
 
             existingUser.UserName = user.Username;
@@ -96,13 +109,7 @@ namespace ChatApp.Application.Services.UserService
             var userInformation = users
                 .Skip(data.PageNumber * _pageSize)
                 .Take(_pageSize)
-                .Select(user => new UserDto
-                {
-                    Id = user.Id,
-                    Username = user.UserName,
-                    Email = user.Email,
-                    PhoneNumber = user.PhoneNumber,
-                }).ToList();
+                .Select(user => user.ToUserDto()).ToList();
 
             var totalCount = users.Count();
 
@@ -116,11 +123,7 @@ namespace ChatApp.Application.Services.UserService
         public async Task<List<UserDto>> GetAllUsers()
         {
             var users = await _userManager.Users.ToListAsync();
-            return users.Select(user => new UserDto
-            {
-                Id = user.Id,
-                Username = user.UserName!
-            }).ToList();
+            return users.Select(user => user.ToUserDto()).ToList();
         }
 
         private async Task<bool> DoesUsernameExistAsync(string username)
@@ -129,5 +132,13 @@ namespace ChatApp.Application.Services.UserService
 
             return existingUser != null;
         }
+
+        private async Task DeleteUserAsync(int userId)
+        {
+            var repo = _unitOfWork.GetRepository<User, int>()!;
+            await repo.DeleteAsync(userId);
+            await _unitOfWork.SaveAsync();
+        }
+
     }
 }

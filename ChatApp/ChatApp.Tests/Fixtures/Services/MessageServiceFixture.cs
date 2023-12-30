@@ -11,9 +11,9 @@ using ChatApp.Domain.Messages;
 using ChatApp.Domain.Rooms;
 using ChatApp.Tests.Fixtures.Setups;
 using ChatApp.Tests.Fixtures.Setups.Interfaces;
-using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using ChatApp.Domain.DTOs.Http.Requests.Messages;
 
 namespace ChatApp.Tests.Fixtures.Services
 {

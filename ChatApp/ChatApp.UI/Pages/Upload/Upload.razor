@@ -1,12 +1,14 @@
 ﻿@using HigLabo.OpenAI
 @using ChatApp.UI.Services.OpenAiService.Interfaces
 @using ChatApp.UI.Services.RoomApplicationService.Interfaces
-@using ChatApp.Domain.DTOs.Http
 @using System.Security.Claims
 @using ChatApp.Domain.DTOs.FileDto
-@using ChatApp.Domain.DTOs.Http.Responses
 @using ChatApp.UI.Services.FIleApplicationService.Interfaces
+@using ChatApp.UI.Services.UserApplicationService.Interfaces
 @page "/fileupload"
+@using ChatApp.Domain.DTOs.Http.Requests.Files
+@using ChatApp.Domain.DTOs.Http.Responses.Files
+@using ChatApp.Domain.DTOs.Http.Responses.Users
 @attribute [Authorize]
 
 @if (IsProccessing)
@@ -106,7 +108,7 @@ else
     private string _userId;
     private string _userName;
     private bool IsProccessing;
-
+    private UserGroupsResponseDto? response;
     private FilesFromUserResponseDto FilesFromResponse = new();
     [Inject]
     private IOpenAiService OpenAiService { get; set; } = null!;
@@ -114,6 +116,8 @@ else
     private IRoomApplicationService RoomApplicationService { get; set; } = null!;
     [Inject]
     private IFileApplicationService FileApplicationService { get; set; } = null!;
+    [Inject]
+    private IUserApplicationService UserApplicationService { get; set; } = null!;
     [Inject]
     public AuthenticationStateProvider StateProvider { get; set; } = null!;
     [Inject]
@@ -126,16 +130,17 @@ else
         _userId = authenticationResult.User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
         _userName = authenticationResult.User.FindFirst(ClaimTypes.Name)?.Value!;
         FilesFromResponse = await FileApplicationService.GetAllFilesFromSpecificUser(_userId);
+        response = await UserApplicationService.GetAllUserGroups();
+
     }
 
     private async Task UploadFile()
     {
         if (File is not null && !string.IsNullOrEmpty(_roomName))
         {
-            //TODO: check if user belongs to this room else
             var room = await RoomApplicationService.GetRoomByNameAsync(_roomName);
 
-            if (room.Name is null)
+            if (string.IsNullOrEmpty(room.Name) || !IsUserParticipant(response, room.Id))
             {
                 NotificationService.Notify(new NotificationMessage
                 {
@@ -162,7 +167,7 @@ else
                 SenderId = _userId,
                 FileName = File.Name
             });
-            
+
             NotificationService.Notify(new NotificationMessage
             {
                 Summary = "File was uploaded",
@@ -214,5 +219,10 @@ else
         FilesFromResponse = await FileApplicationService.GetAllFilesFromSpecificUser(_userId);
         IsProccessing = false;
         StateHasChanged();
+    }
+
+    private bool IsUserParticipant(UserGroupsResponseDto? response, int id)
+    {
+        return response != null && response.GroupsId.Any(value => value.Equals(id.ToString()));
     }
 }

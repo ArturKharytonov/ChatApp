@@ -7,5 +7,6 @@ public class RoomDto
     public string AssistantId { get; set; }
     public int MessagesNumber { get; set; }
     public int ParticipantsNumber { get; set; }
-    public List<FileDto.FileDto> Files { get; set; }
+    public int CreatorId { get; set; }
+    public IEnumerable<FileDto.FileDto> Files { get; set; }
 }

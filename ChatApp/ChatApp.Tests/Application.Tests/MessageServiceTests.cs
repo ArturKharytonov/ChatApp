@@ -1,5 +1,4 @@
 ﻿using Azure.Identity;
-using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.Enums;
@@ -10,6 +9,7 @@ using Moq;
 using Message = ChatApp.Domain.Messages.Message;
 using FluentAssertions;
 using ChatApp.Persistence.UnitOfWork;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 
 namespace ChatApp.Tests.Application.Tests
 {

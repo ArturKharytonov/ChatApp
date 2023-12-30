@@ -1,6 +1,8 @@
 ﻿using System.Web;
-using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
+using ChatApp.Domain.DTOs.Http.Requests.Rooms;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
+using ChatApp.Domain.DTOs.Http.Responses.Rooms;
 using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
 using ChatApp.UI.Services.HttpClientPWAService;
@@ -17,6 +19,12 @@ namespace ChatApp.UI.Services.RoomApplicationService
         {
             _clientPwa = clientPwa;
         }
+
+        public async Task DeleteRoom(string roomId)
+        {
+            await _clientPwa.DeleteAsync(HttpClientPwa.DeleteRoom + $"?roomId={roomId}");
+        }
+
         public async Task<RoomDto> GetRoomAsync(string id)
         {
             var result = await _clientPwa.GetAsync<RoomDto>(HttpClientPwa.GetRoom + "id=" + id);

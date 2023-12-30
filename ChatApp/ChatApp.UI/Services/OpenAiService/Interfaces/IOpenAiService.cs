@@ -7,6 +7,7 @@ namespace ChatApp.UI.Services.OpenAiService.Interfaces;
 public interface IOpenAiService
 {
     Run Run { get; set; }
+    Task DeleteAssistant(string assistantId);
     Task DeleteFileFromAssistant(string assistantId, string fileId);
     Task UploadFileToAssistant(RoomDto room);
     Task<string> CreateAssistantAsync(string roomName);
@@ -15,4 +16,5 @@ public interface IOpenAiService
     Task DeleteThreadAsync(string threadId);
     Task<string> CreateRunAsync(string assistantId, string threadId);
     Task<string> UploadFile(FileUploadParameter parameter);
+    Task<string> ChatCompletionAsync(string message);
 }

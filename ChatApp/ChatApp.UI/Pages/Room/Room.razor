@@ -1,12 +1,13 @@
 ﻿@page "/chat/{id}"
 @using ChatApp.Domain.DTOs.MessageDto
 @using ChatApp.UI.Services.MessageApplicationService.Interfaces
-@using ChatApp.Domain.DTOs.Http
+@using ChatApp.Domain.DTOs.Http.Requests.Messages
 @using ChatApp.Domain.DTOs.RoomDto
 @using ChatApp.Domain.DTOs.UserDto
 @using ChatApp.UI.Services.RoomApplicationService.Interfaces
 @using ChatApp.UI.Services.SignalRService.Interfaces
 @using ChatApp.UI.Pages.User
+@using ChatApp.UI.Services.FIleApplicationService.Interfaces
 @using ChatApp.UI.Services.OpenAiService.Interfaces
 @using ChatApp.UI.Services.UserApplicationService.Interfaces
 @attribute [Authorize]
@@ -24,6 +25,10 @@
 <RadzenButton Click=@OnCallClick Text="Start call" Icon="input" ButtonStyle="ButtonStyle.Success"/>
 
 
+@if (_currentUser.Id == _room.CreatorId)
+{
+    <RadzenButton Click=@OnDeleteOfChat Text="Delete room" ButtonStyle="ButtonStyle.Danger" />
+}
 <div style="display: flex; flex-direction: column">
     <div>
         <div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px; max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; background-color: #3F3075; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
@@ -76,7 +81,7 @@
     private UserDto _currentUser = new();
     private RoomDto _room = new();
     private string _threadId;
-
+    
     [Inject]
     NotificationService NotificationService { get; set; } = null!;
 
@@ -91,6 +96,9 @@
 
     [Inject]
     IUserApplicationService UserApplicationService { get; set; } = null!;
+
+    [Inject]
+    IFileApplicationService FileApplicationService { get; set; } = null!;
 
     [Inject]
     IOpenAiService OpenAiService { get; set; } = null!;
@@ -128,6 +136,24 @@
     {
         SignalRService.NotifyAboutCall(_room.Id.ToString(), _room.Name, _currentUser.Username);
         NavigationManager.NavigateTo($"/call/{Id}");
+    }
+
+    private async Task OnDeleteOfChat()
+    {
+        if (_room.Files.Any())
+        {
+            foreach (var file in _room.Files)
+            {
+                await FileApplicationService.DeleteFile(file.Id);
+                await OpenAiService.DeleteFileFromAssistant(_room.AssistantId, file.Id);
+            }
+        }
+        
+        await OpenAiService.DeleteAssistant(_room.AssistantId);
+        await MessageApplicationService.DeleteAllMessagesFromRoomAsync(_room.Id.ToString());
+        await RoomApplicationService.DeleteRoom(_room.Id.ToString());
+
+        NavigationManager.NavigateTo("/roomgrid");
     }
 
     public async Task OnSendClick()
@@ -171,7 +197,7 @@
 
     private async void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
     {
-        await OpenAiService.DeleteThreadAsync(_threadId);
+        //await OpenAiService.DeleteThreadAsync(_threadId);
 
         SignalRService.OnItemReceived -= OnMessageReceived;
         SignalRService.OnItemUpdate -= OnMessageUpdate;

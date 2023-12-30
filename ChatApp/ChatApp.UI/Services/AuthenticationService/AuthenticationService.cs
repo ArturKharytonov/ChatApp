@@ -1,6 +1,6 @@
 ﻿using Blazored.LocalStorage;
-using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Requests.Users;
+using ChatApp.Domain.DTOs.Http.Responses.Users;
 using ChatApp.UI.Services.CustomAuthenticationState;
 using ChatApp.UI.Services.HttpClientPWAService;
 using ChatApp.UI.Services.HttpClientPWAService.Interfaces;

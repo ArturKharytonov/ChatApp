@@ -1,8 +1,10 @@
 ﻿@page "/createroom"
 @using ChatApp.Domain.DTOs.Http
+@using ChatApp.Domain.DTOs.Http.Requests.Rooms
 @using ChatApp.UI.Services.OpenAiService.Interfaces
 @using ChatApp.UI.Services.RoomApplicationService.Interfaces
 @using ChatApp.UI.Services.SignalRService.Interfaces
+@using Radzen.Blazor
 @inject NavigationManager Navigation
 @attribute [Authorize]
 

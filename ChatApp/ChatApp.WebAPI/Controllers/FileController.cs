@@ -1,5 +1,6 @@
 ﻿using ChatApp.Application.Services.FileService.Interface;
 using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Responses.Files;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

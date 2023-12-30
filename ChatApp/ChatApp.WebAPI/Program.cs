@@ -1,6 +1,8 @@
 using System.Configuration;
 using System.Security.Claims;
 using System.Text;
+using ChatApp.Application.Services.AmazonService;
+using ChatApp.Application.Services.AmazonService.Interfaces;
 using ChatApp.Application.Services.FileService;
 using ChatApp.Application.Services.FileService.Interface;
 using ChatApp.Application.Services.ISqlService;
@@ -19,7 +21,6 @@ using ChatApp.Application.Services.UserService;
 using ChatApp.Application.Services.UserService.Interfaces;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.DTOs.RoomDto;
-using ChatApp.Domain.Mapping;
 using ChatApp.Domain.Users;
 using ChatApp.Persistence.Context;
 using ChatApp.Persistence.UnitOfWork;
@@ -110,6 +111,7 @@ public class Program
         builder.Services.AddScoped<IUserContext, UserContext>();
         builder.Services.AddScoped<IOpenAiService, OpenAiService>();
 
+        builder.Services.AddScoped<IAmazonService, AmazonService>();
         builder.Services.AddScoped<IFileService, FileService>();
         builder.Services.AddScoped<IMessageService, MessageService>();
         builder.Services.AddScoped<IUserService, UserService>();
@@ -118,8 +120,6 @@ public class Program
         builder.Services.AddScoped<IQueryBuilder<User>, QueryBuilder<User>>();
         builder.Services.AddScoped<IQueryBuilder<RoomDto>, QueryBuilder<RoomDto>>();
         builder.Services.AddScoped<IQueryBuilder<MessageDto>, QueryBuilder<MessageDto>>();
-
-        builder.Services.AddAutoMapper(typeof(MappingProfile));
 
         builder.Services.AddSignalR();
 

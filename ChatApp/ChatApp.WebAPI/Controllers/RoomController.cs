@@ -1,8 +1,11 @@
 ﻿using ChatApp.Application.Services.FileService.Interface;
 using ChatApp.Application.Services.RoomService.Interfaces;
 using ChatApp.Application.Services.UserContext.Interfaces;
-using ChatApp.Domain.DTOs.Http;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
+using ChatApp.Domain.DTOs.Http.Requests.Files;
 using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Responses.Files;
+using ChatApp.Domain.DTOs.Http.Responses.Rooms;
 using ChatApp.Domain.Enums;
 using ChatApp.UI.Services.OpenAiService.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +31,12 @@ namespace ChatApp.WebAPI.Controllers
             _fileService = fileService;
         }
 
+        [HttpDelete("by_id")]
+        public async Task DeleteRoom([FromQuery] int roomId)
+        {
+            await _roomService.DeleteRoom(roomId);
+        }
+
         [HttpGet("page")]
         public async Task<IActionResult> GetRooms([FromQuery] GridModelDto<RoomColumnsSorting> model)
         {
@@ -39,12 +48,11 @@ namespace ChatApp.WebAPI.Controllers
         [HttpGet("creating")]
         public async Task<IActionResult> CreateRoom([FromQuery] string roomName)
         {
-            var assistantId = await _openAiService.CreateAssistantAsync(roomName);
-
             var id = _userContext.GetUserId();
-            if (string.IsNullOrEmpty(id)) 
+            if (string.IsNullOrEmpty(id) || await _roomService.DoesRoomExist(roomName)) 
                 return BadRequest(new AddRoomResponseDto { WasAdded = false });
 
+            var assistantId = await _openAiService.CreateAssistantAsync(roomName);
             var roomId = await _roomService.CreateRoom(roomName, id, assistantId);
 
             if (roomId.HasValue)

@@ -14,19 +14,23 @@ namespace ChatApp.UI.Services.HttpClientPWAService
         public static string UpdateUserCredentials => GetApiUrl("/api/user/credentials");
         public static string GetUsersBySearch => GetApiUrl("/api/user/page?");
         public static string GetAllUsers => GetApiUrl("/api/user/all");
+
         public static string GetRoomsBySearch => GetApiUrl("/api/rooms/page?");
         public static string GetMessagesBySearch => GetApiUrl("/api/message/page?");
         public static string GetAllMessagesFromChat => GetApiUrl("/api/message/all/");
         public static string CreateRoom => GetApiUrl("/api/rooms/creating?");
+        public static string DeleteRoom => GetApiUrl("/api/rooms/by_id");
         public static string GetRoom => GetApiUrl("/api/rooms?");
         public static string GetRoomByName => GetApiUrl("/api/rooms/by_name?");
         public static string UploadFileToRoom => GetApiUrl("/api/rooms/file");
-
         public static string GetUserRooms => GetApiUrl("/api/user/rooms");
         public static string AddUserToRoom => GetApiUrl("/api/user");
         public static string Message => GetApiUrl("/api/message");
+        public static string DeleteAllMessages => GetApiUrl("/api/message/in_room");
         public static string GetFilesFromUser => GetApiUrl("/api/files?");
         public static string DeleteFile => GetApiUrl("/api/files?");
+        public static string GetAmazonPage => GetApiUrl("/api/amazon?");
+
 
         private static string GetApiUrl(string endpoint)
         {

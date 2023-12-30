@@ -8,7 +8,7 @@ namespace ChatApp.UI.Services.OpenAiService;
 
 public class OpenAiService : IOpenAiService
 {
-    private const string ApiKey = "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";
+    private const string ApiKey = "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";
     private const string _model = "gpt-3.5-turbo-1106";
     private readonly OpenAIClient _client;
 
@@ -18,6 +18,29 @@ public class OpenAiService : IOpenAiService
     {
         _client = new OpenAIClient(ApiKey);
         Run = new Run(_client);
+    }
+
+    public async Task<string> ChatCompletionAsync(string message)
+    {
+        message +=
+            "\n\nI will provide you html , and you have to extract information about product in this html and return me IMAGE AND NAME IN JSON.\r\n\r\n!!!U can find needed info here class=\"a-section a-spacing-base\"\r\n";
+        var p = new ChatCompletionsParameter
+        {
+            Messages = new List<ChatMessage>{new(ChatMessageRole.User, message)},
+            Model = "gpt-3.5-turbo"
+        };
+        var res = await _client.ChatCompletionsAsync(p);
+
+        return res.Choices[0].Message.Content;
+    }
+
+    public async Task DeleteAssistant(string assistantId)
+    {
+        var url = $"https://api.openai.com/v1/assistants/{assistantId}";
+        _client.HttpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", $"{ApiKey}");
+        _client.HttpClient.DefaultRequestHeaders.Add("OpenAI-Beta", "assistants=v1");
+        await _client.HttpClient.DeleteAsync(url);
     }
 
     public async Task<string> CreateAssistantAsync(string roomName)

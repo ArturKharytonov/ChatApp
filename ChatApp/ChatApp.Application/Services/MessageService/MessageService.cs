@@ -1,9 +1,11 @@
 ﻿using ChatApp.Application.Services.MessageService.Interfaces;
 using ChatApp.Application.Services.QueryBuilder.Interfaces;
-using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
+using ChatApp.Domain.DTOs.Http.Requests.Messages;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.Enums;
+using ChatApp.Domain.Mappers.Messages;
 using ChatApp.Domain.Messages;
 using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
@@ -37,15 +39,7 @@ public class MessageService : IMessageService
             .FirstOrDefault(r => r.Id == int.Parse(roomId));
 
         var messages = room!.Messages
-            .Select(x => new MessageDto
-            {
-                Id = x.Id,
-                Content = x.Content,
-                SentAt = x.SentAt,
-                RoomName = x.Room.Name,
-                SenderUsername = x.Sender.UserName!
-            });
-
+            .Select(x => x.ToMessageDto());
         return messages;
     }
     public async Task<MessageDto> AddMessageAsync(AddMessageDto addMessageDto)
@@ -64,30 +58,16 @@ public class MessageService : IMessageService
         await _unitOfWork.GetRepository<Message, int>()!.CreateAsync(message);
         await _unitOfWork.SaveAsync();
 
-        return new MessageDto
-        {
-            Id = message.Id,
-            Content = addMessageDto.Content,
-            SentAt = addMessageDto.SentAt,
-            SenderUsername = user.UserName,
-            RoomName = room.Name
-        };
+        return message.ToMessageDto();
     }
     public async Task<GridModelResponse<MessageDto>> GetMessagePageAsync(GridModelDto<MessageColumnsSorting> data)
     {
         var list = await _unitOfWork.GetRepository<Message, int>()!.GetAllAsQueryableAsync();
          
         var messages = list
-            .Include(x => x.Sender)
-            .Include(x => x.Room)
-            .Select(x => new MessageDto
-            {
-                Id = x.Id,
-                Content = x.Content,
-                SentAt = x.SentAt,
-                SenderUsername = x.Sender.UserName,
-                RoomName = x.Room.Name
-            });
+            .Include(m => m.Sender)
+            .Include(m => m.Room)
+            .Select(x => x.ToMessageDto());
 
         if (!string.IsNullOrEmpty(data.Data))
             messages = messages.Where(_queryBuilder.SearchQuery(data.Data, Enum.GetNames(data.Column.GetType())));
@@ -101,6 +81,7 @@ public class MessageService : IMessageService
             .ToList();
 
         var totalCount = messages.Count();
+
         return new GridModelResponse<MessageDto>
         {
             Items = messageInformation,
@@ -124,5 +105,17 @@ public class MessageService : IMessageService
         var repo = _unitOfWork.GetRepository<Message, int>()!;
         await repo.DeleteAsync(messageId);
         await _unitOfWork.SaveAsync();
+    }
+    public async Task DeleteAllMessagesInRoomAsync(int roomId)
+    {
+        var rooms = await _unitOfWork.GetRepository<Room, int>()!.GetAllAsQueryableAsync();
+        var room = await rooms
+            .Include(x => x.Messages)
+            .FirstOrDefaultAsync(r => r.Id == roomId);
+
+        if (room == null || !room.Messages.Any()) return;
+
+        foreach (var message in room.Messages)
+            await DeleteMessageAsync(message.Id);
     }
 }

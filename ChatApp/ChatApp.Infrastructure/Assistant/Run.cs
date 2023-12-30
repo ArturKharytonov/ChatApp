@@ -45,6 +45,5 @@ namespace ChatApp.Infrastructure.Assistant
 
             return string.Empty;
         }
-        
     }
 }

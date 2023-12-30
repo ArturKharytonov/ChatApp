@@ -1,8 +1,9 @@
 ﻿using ChatApp.Application.Services.JwtHandler.Interfaces;
 using ChatApp.Application.Services.UserContext.Interfaces;
 using ChatApp.Application.Services.UserService.Interfaces;
-using ChatApp.Domain.DTOs.Http;
+using ChatApp.Domain.DTOs.Http.Requests.Users;
 using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Responses.Users;
 using ChatApp.Domain.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

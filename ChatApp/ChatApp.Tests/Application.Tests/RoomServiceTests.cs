@@ -1,5 +1,4 @@
-﻿using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Domain.Rooms;
@@ -8,6 +7,7 @@ using ChatApp.Tests.Fixtures.Services;
 using Moq;
 using FluentAssertions;
 using File = ChatApp.Domain.Files.File;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 
 namespace ChatApp.Tests.Application.Tests
 {

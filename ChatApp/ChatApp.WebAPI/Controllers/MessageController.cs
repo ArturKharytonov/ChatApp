@@ -1,10 +1,12 @@
 ﻿using ChatApp.Application.Services.MessageService.Interfaces;
-using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.DTOs.MessageDto;
 using Microsoft.AspNetCore.Authorization;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
+using ChatApp.Domain.DTOs.Http.Requests.Messages;
+using ChatApp.Domain.DTOs.Http.Responses.Messages;
 
 namespace ChatApp.WebAPI.Controllers
 {
@@ -17,6 +19,12 @@ namespace ChatApp.WebAPI.Controllers
         public MessageController(IMessageService messageService)
         {
             _messageService = messageService;
+        }
+
+        [HttpDelete("in_room")]
+        public async Task DeleteMessagesInRoomAsync([FromQuery] int roomId)
+        {
+            await _messageService.DeleteAllMessagesInRoomAsync(roomId);
         }
 
         [HttpDelete]
