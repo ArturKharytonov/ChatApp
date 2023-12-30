@@ -1,0 +1,53 @@
+﻿@page "/search"
+@using ChatApp.Domain.DTOs.Http.Responses.Amazon
+@using ChatApp.UI.Services.AmazonApplicationService.Interfaces
+@attribute [Authorize]
+
+
+@if (IsProccessing)
+{
+    <div class="spinner"></div>
+}
+else
+{
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Search</RadzenText>
+        <RadzenTextBox @bind-Value="content" class="w-100" />
+        <RadzenButton Text="Search" Click="@OnSearchButtonClick" Style="margin-top: 10px;" />
+    </RadzenCard>
+
+    <RadzenDataGrid Data="@_models.List" TItem="AmazonProductDto">
+        <EmptyTemplate>
+            <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">No records to display.</p>
+        </EmptyTemplate>
+        <Columns>
+            <RadzenDataGridColumn TItem="AmazonProductDto" Property="Image" Title="Image">
+                <Template Context="data">
+                    <RadzenImage Path="@data.ImageUrl" AlternateText="@(data.Title)"/>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="AmazonProductDto" Property="Title" Title="Name"/>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+
+@code {
+    private string content;
+    private AmazonResponseDto _models = new();
+    private bool IsProccessing;
+
+    [Inject]
+    private IAmazonApplicationService AmazonApplicationService { get; set; } = null!;
+
+    private async Task OnSearchButtonClick()
+    {
+        IsProccessing = true;
+        StateHasChanged();
+
+        _models = await AmazonApplicationService.GetPageAsync(content);
+
+        IsProccessing = false;
+        StateHasChanged();
+    }
+}

@@ -1,12 +1,12 @@
 ﻿using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.RoomDto;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
 using ChatApp.UI.Pages.Common.ComponentHelpers;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using ChatApp.Domain.DTOs.MessageDto;
-using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Domain.Enums;
 using ChatApp.UI.Services.MessageApplicationService.Interfaces;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 
 namespace ChatApp.UI.Pages.Message
 {

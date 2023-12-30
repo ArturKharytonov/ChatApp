@@ -1,5 +1,5 @@
 ﻿using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Responses.Users;
 using ChatApp.Domain.Users;
 using ChatApp.Tests.Fixtures.Controllers;
 using Microsoft.AspNetCore.Identity;

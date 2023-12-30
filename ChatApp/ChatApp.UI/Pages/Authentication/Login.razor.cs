@@ -1,4 +1,4 @@
-﻿using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Domain.DTOs.Http.Requests.Users;
 using ChatApp.UI.Services.SignalRService.Interfaces;
 using ChatApp.UI.Services.UserApplicationService.Interfaces;
 using Microsoft.AspNetCore.Components;

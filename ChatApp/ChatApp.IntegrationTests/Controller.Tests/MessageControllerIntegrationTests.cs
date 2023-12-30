@@ -1,4 +1,5 @@
 ﻿using ChatApp.Domain.DTOs.Http;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.Enums;
 using FluentAssertions;

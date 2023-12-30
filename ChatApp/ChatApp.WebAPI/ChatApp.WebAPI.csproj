@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.13" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="7.0.13" />
+    <PackageReference Include="OpenAI-DotNet" Version="7.4.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
@@ -22,6 +23,6 @@
     <ProjectReference Include="..\ChatApp.UI\ChatApp.UI.csproj" />
   </ItemGroup>
 	<ItemGroup>
-		<InternalsVisibleTo Include="ChatApp.IntegrationTests"/>
+		<InternalsVisibleTo Include="ChatApp.IntegrationTests" />
 	</ItemGroup>
 </Project>

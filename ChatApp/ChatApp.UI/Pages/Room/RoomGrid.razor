@@ -10,7 +10,6 @@
         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Search</RadzenText>
         <RadzenTextBox Placeholder="type..." @oninput=@(args => OnSearchChangeAsync(args.Value.ToString())) class="w-100" />
     </RadzenCard>
-
     <RadzenSelectBar Size="ButtonSize.Small" @bind-Value=@Sorting TValue="bool" class="mb-5" Change=@(async () => await OnSortChangeAsync())>
         <Items>
             <RadzenSelectBarItem Text="On" Value="true" />

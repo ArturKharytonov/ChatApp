@@ -1,14 +1,16 @@
-﻿using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
 using Newtonsoft.Json;
 using System.Net.Http.Json;
 using System.Net;
 using System.Text;
+using ChatApp.Domain.DTOs.Http.Responses.Rooms;
 using ChatApp.Domain.Users;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using ChatApp.Domain.DTOs.Http.Responses.Users;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 
 namespace ChatApp.IntegrationTests.Controller.Tests;
 

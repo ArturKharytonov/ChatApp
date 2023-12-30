@@ -30,8 +30,9 @@ namespace ChatApp.UI.Services.SignalRService
 
         public async Task StartConnection()
         {
+            var apiUrl = Environment.GetEnvironmentVariable("API_URL");
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl("https://localhost:7223/chatHub", o =>
+                .WithUrl($"{apiUrl}/chatHub", o =>
                     o.AccessTokenProvider = async () => await _localStorageService.GetItemAsync<string>("token"))
                 .Build();
 

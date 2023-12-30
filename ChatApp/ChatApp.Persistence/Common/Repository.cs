@@ -1,10 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using ChatApp.Domain.Common;
+﻿using ChatApp.Domain.Common;
 using ChatApp.Persistence.Common.Interfaces;
 using ChatApp.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using ChatApp.Domain.Rooms;
 
 namespace ChatApp.Persistence.Common
 {
@@ -55,5 +53,16 @@ namespace ChatApp.Persistence.Common
                 .Where(entity => entity.Id.Equals(id))
                 .ExecuteDeleteAsync();
         }
+        //public IQueryable<TEntity> GetAllIncluding(params Expression<Func<TEntity, object>>[] propertySelectors)
+        //{
+        //    var query = _context.Set<TEntity>().AsQueryable();
+        //    if (!propertySelectors.IsNullOrEmpty())
+        //    {
+        //        foreach (var property in propertySelectors)
+        //            query = query.Include(property);
+        //    }
+
+        //    return query;
+        //}
     }
 }

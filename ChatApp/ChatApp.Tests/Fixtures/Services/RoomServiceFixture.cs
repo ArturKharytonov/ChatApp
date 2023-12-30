@@ -6,18 +6,11 @@ using ChatApp.Persistence.Common.Interfaces;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ChatApp.Application.Services.QueryBuilder;
 using ChatApp.Domain.Rooms;
-using ChatApp.Application.Services.RoomService.Interfaces;
-using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.Enums;
-using ChatApp.Persistence.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
+using File = ChatApp.Domain.Files.File;
 
 namespace ChatApp.Tests.Fixtures.Services
 {
@@ -27,6 +20,8 @@ namespace ChatApp.Tests.Fixtures.Services
         public readonly Mock<IQueryBuilder<RoomDto>> QueryBuilderMock;
         public readonly Mock<UserManager<User>> UserManagerMock;
         public readonly Mock<IRepository<Room, int>> RoomRepositoryMock;
+        public readonly Mock<IRepository<File, string>> FileRepositoryMock;
+
         public readonly RoomService RoomService;
         public readonly int PageSize = 5;
         private readonly IQueryBuilder<RoomDto> _queryBuilder;
@@ -39,6 +34,7 @@ namespace ChatApp.Tests.Fixtures.Services
                 Mock.Of<IUserStore<User>>(),
                 null, null, null, null, null, null, null, null);
             RoomRepositoryMock = new Mock<IRepository<Room, int>>();
+            FileRepositoryMock = new Mock<IRepository<File, string>>();
             RoomService = new RoomService(QueryBuilderMock.Object, UnitOfWorkMock.Object, UserManagerMock.Object);
             _queryBuilder = new QueryBuilder<RoomDto>();
         }

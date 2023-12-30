@@ -1,4 +1,4 @@
-﻿using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Domain.DTOs.Http.Requests.Users;
 using Microsoft.AspNetCore.Components;
 using IAuthenticationService = ChatApp.UI.Services.AuthenticationService.Interfaces.IAuthenticationService;
 

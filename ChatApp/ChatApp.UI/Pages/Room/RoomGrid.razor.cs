@@ -1,12 +1,11 @@
-﻿using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+﻿using ChatApp.Domain.DTOs.Http.Requests.Common;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
 using ChatApp.UI.Pages.Common.ComponentHelpers;
 using ChatApp.UI.Services.RoomApplicationService.Interfaces;
 using Microsoft.AspNetCore.Components;
 using Radzen;
-using Radzen.Blazor;
 
 
 namespace ChatApp.UI.Pages.Room
@@ -30,7 +29,6 @@ namespace ChatApp.UI.Pages.Room
         public IEnumerable<RoomColumnsSorting> SortingFieldsDropDown { get; set; }
         [Inject] private IRoomApplicationService RoomApplicationService { get; set; }
 
-
         protected override async Task OnInitializedAsync()
         {
             ReadFromUrl();
@@ -39,7 +37,6 @@ namespace ChatApp.UI.Pages.Room
             Items = response.Items;
             Count = response.TotalCount;
         }
-
         public async Task<GridModelResponse<RoomDto>?> GetItems(int pageNumber)
         {
             NavigationManager.NavigateTo($"/roomgrid?data={Input}&pageNumber={CurrentPage + 1}&column={SortFieldValue}&asc={Asc}&sorting={Sorting}");
@@ -59,7 +56,6 @@ namespace ChatApp.UI.Pages.Room
 
             return await RoomApplicationService.GetRoomsAsync(model);
         }
-
         public async Task PageChanged(PagerEventArgs args)
         {
             CurrentPage = args.PageIndex;
@@ -67,19 +63,16 @@ namespace ChatApp.UI.Pages.Room
 
             await Fetch(CurrentPage);
         }
-
         public async Task OnSearchChangeAsync(string? value)
         {
             Input = value;
 
             await Fetch(CurrentPage);
         }
-
         public async Task OnSortChangeAsync()
         {
             await Fetch(CurrentPage);
         }
-
         public void ReadFromUrl()
         {
             var queryString = new Uri(NavigationManager.Uri).Query;
@@ -101,7 +94,6 @@ namespace ChatApp.UI.Pages.Room
             bool.TryParse(queryParameters["sorting"], out var sorting);
             Sorting = sorting;
         }
-
         public async Task Fetch(int page)
         {
             var response = await GetItems(page);
@@ -109,14 +101,12 @@ namespace ChatApp.UI.Pages.Room
             Items = response.Items;
             Count = response.TotalCount;
         }
-
         private void OnRowClick(DataGridRowMouseEventArgs<RoomDto> args)
         {
             var selectedRoom = args.Data;
 
             NavigationManager.NavigateTo($"/chat/{selectedRoom.Id}");
         }
-
         private void ShowInlineDialog()
         {
             NavigationManager.NavigateTo("/createroom");

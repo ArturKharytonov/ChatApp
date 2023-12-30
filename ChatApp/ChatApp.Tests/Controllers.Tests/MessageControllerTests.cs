@@ -1,5 +1,7 @@
-﻿using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+﻿using ChatApp.Domain.DTOs.Http.Requests.Common;
+using ChatApp.Domain.DTOs.Http.Requests.Messages;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
+using ChatApp.Domain.DTOs.Http.Responses.Messages;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Tests.Fixtures.Controllers;
