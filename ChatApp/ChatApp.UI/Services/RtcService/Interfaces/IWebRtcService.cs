@@ -13,7 +13,6 @@ namespace ChatApp.UI.Services.RtcService.Interfaces
         Task Hangup();
         Task SendOffer(string offer);
         Task StartAsync();
-        Task RegisterUserSignalGroupsAsync();
         Task AskForConfirmation(string channel, int senderId, int getterId);
         Task ConfirmationResponse(string channel, bool result);
     }

@@ -1,10 +1,16 @@
 using Blazored.LocalStorage;
 using ChatApp.UI;
+using ChatApp.UI.Services.AmazonApplicationService;
+using ChatApp.UI.Services.AmazonApplicationService.Interfaces;
 using ChatApp.UI.Services.CustomAuthenticationState;
+using ChatApp.UI.Services.FIleApplicationService;
+using ChatApp.UI.Services.FIleApplicationService.Interfaces;
 using ChatApp.UI.Services.HttpClientPWAService;
 using ChatApp.UI.Services.HttpClientPWAService.Interfaces;
 using ChatApp.UI.Services.MessageApplicationService;
 using ChatApp.UI.Services.MessageApplicationService.Interfaces;
+using ChatApp.UI.Services.OpenAiService;
+using ChatApp.UI.Services.OpenAiService.Interfaces;
 using ChatApp.UI.Services.RoomApplicationService;
 using ChatApp.UI.Services.RoomApplicationService.Interfaces;
 using ChatApp.UI.Services.RtcService;
@@ -36,7 +42,11 @@ builder.Services.AddScoped<DialogService>();
 
 builder.Services.AddScoped<ISignalRService, SignalRService>();
 builder.Services.AddScoped<IWebRtcService, WebRtcService>();
+builder.Services.AddScoped<IOpenAiService, OpenAiService>();
 
+
+builder.Services.AddScoped<IAmazonApplicationService, AmazonApplicationService>();
+builder.Services.AddScoped<IFileApplicationService, FileApplicationService>();
 builder.Services.AddScoped<IMessageApplicationService, MessageApplicationService>();
 builder.Services.AddScoped<IRoomApplicationService, RoomApplicationService>();
 builder.Services.AddScoped<IUserApplicationService, UserApplicationService>();
@@ -44,5 +54,11 @@ builder.Services.AddScoped<IHttpClientPwa, HttpClientPwa>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+
+if (builder.HostEnvironment.IsDevelopment())
+    Environment.SetEnvironmentVariable("API_URL", "https://localhost:7223");
+
+else if (builder.HostEnvironment.IsProduction())
+    Environment.SetEnvironmentVariable("API_URL", "https://apichatappkh.azurewebsites.net");
 
 await builder.Build().RunAsync();

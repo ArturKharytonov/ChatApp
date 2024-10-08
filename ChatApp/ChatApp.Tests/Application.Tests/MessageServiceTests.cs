@@ -1,4 +1,4 @@
-﻿using ChatApp.Domain.DTOs.Http.Responses;
+﻿using Azure.Identity;
 using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.Enums;
@@ -9,6 +9,7 @@ using Moq;
 using Message = ChatApp.Domain.Messages.Message;
 using FluentAssertions;
 using ChatApp.Persistence.UnitOfWork;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 
 namespace ChatApp.Tests.Application.Tests
 {
@@ -151,7 +152,7 @@ namespace ChatApp.Tests.Application.Tests
         }
 
         [Theory]
-        [InlineData("Message", MessageColumnsSorting.SenderUsername, true, 1)]
+        [InlineData("Message", MessageColumnsSorting.SenderUsername, true, 0)]
         public async Task GetMessagePageAsync_ReturnsExpectedResults(
         string searchTerm, MessageColumnsSorting column, bool asc, int pageNumber)
         {
@@ -166,8 +167,8 @@ namespace ChatApp.Tests.Application.Tests
 
             var messages = new List<Message>
             {
-                new() { Id = 2, Content = "Message2", SentAt = DateTime.UtcNow, SenderId = 2, RoomId = 2 },
-                new() { Id = 1, Content = "Message1", SentAt = DateTime.UtcNow, SenderId = 1, RoomId = 1 }
+                new() { Id = 2, Content = "Message2", SentAt = DateTime.UtcNow, SenderId = 2, RoomId = 1, Sender = new User { UserName = "User2" }, Room = new Room { Name = "Room1" }},
+                new() { Id = 1, Content = "Message1", SentAt = DateTime.UtcNow, SenderId = 1, RoomId = 1, Sender = new User { UserName = "User1" }, Room = new Room { Name = "Room1" }}
             }.AsQueryable();
 
             _fixture.SetupMessagesPageService(messages);

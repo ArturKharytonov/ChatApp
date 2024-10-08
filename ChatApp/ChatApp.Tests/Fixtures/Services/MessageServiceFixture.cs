@@ -11,9 +11,9 @@ using ChatApp.Domain.Messages;
 using ChatApp.Domain.Rooms;
 using ChatApp.Tests.Fixtures.Setups;
 using ChatApp.Tests.Fixtures.Setups.Interfaces;
-using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using ChatApp.Domain.DTOs.Http.Requests.Messages;
 
 namespace ChatApp.Tests.Fixtures.Services
 {
@@ -56,11 +56,6 @@ namespace ChatApp.Tests.Fixtures.Services
             RoomRepositoryMock?.Reset();
         }
 
-        public void SetupRoomRepository(Room room)
-        {
-            RoomRepoMockSetup.SetupRepository(RoomRepositoryMock, room);
-        }
-
         public AddMessageDto SetupAddMessageTest(string userId, int roomId, string content,
             string userName, int expectedUserId, string expectedRoomName)
         {
@@ -91,8 +86,6 @@ namespace ChatApp.Tests.Fixtures.Services
         {
             UnitOfWork.Setup(u => u.GetRepository<Message, int>())
                 .Returns(MessageRepositoryMock.Object);
-            UnitOfWork.Setup(u => u.GetRepository<Room, int>())
-                .Returns(RoomRepositoryMock.Object);
 
             var mockSet = new Mock<DbSet<Message>>();
             mockSet.As<IQueryable<Message>>().Setup(m => m.Provider).Returns(messages.Provider);
@@ -103,13 +96,6 @@ namespace ChatApp.Tests.Fixtures.Services
             MessageRepositoryMock
                 .Setup(r => r.GetAllAsQueryableAsync())
                 .ReturnsAsync(mockSet.Object);
-
-            UserManagerMock
-                .Setup(u => u.FindByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync((string id) => new User { Id = int.Parse(id), UserName = $"User{id}" });
-
-            RoomRepositoryMock.Setup(r => r.GetByIdAsync(It.IsAny<int>()))
-                .ReturnsAsync((int id) => new Room { Id = id, Name = $"Room{id}" });
 
             QueryBuilderMock
                 .Setup(q => q.SearchQuery(It.IsAny<string>(), Enum.GetNames(typeof(MessageColumnsSorting))))

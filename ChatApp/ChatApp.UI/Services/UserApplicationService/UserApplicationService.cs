@@ -1,12 +1,13 @@
 ﻿using System.Web;
-using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
+using ChatApp.Domain.DTOs.Http.Requests.Users;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
+using ChatApp.Domain.DTOs.Http.Responses.Users;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
 using ChatApp.UI.Services.HttpClientPWAService;
 using ChatApp.UI.Services.HttpClientPWAService.Interfaces;
 using ChatApp.UI.Services.UserApplicationService.Interfaces;
-using Microsoft.AspNetCore.Http;
 
 namespace ChatApp.UI.Services.UserApplicationService
 {
@@ -18,7 +19,6 @@ namespace ChatApp.UI.Services.UserApplicationService
         {
             _clientPwa = clientPwa;
         }
-
         public async Task<UserDto> GetUserAsync()
         {
             var result = await _clientPwa.GetAsync<UserDto>(HttpClientPwa.GetUser);
@@ -46,6 +46,13 @@ namespace ChatApp.UI.Services.UserApplicationService
         public async Task<UserGroupsResponseDto?> GetAllUserGroups()
         {
             var result = await _clientPwa.GetAsync<UserGroupsResponseDto>(HttpClientPwa.GetUserRooms);
+
+            return result.Result;
+        }
+
+        public async Task<AllUsersResponseDto> GetAllUsers()
+        {
+            var result = await _clientPwa.GetAsync<AllUsersResponseDto>(HttpClientPwa.GetAllUsers);
 
             return result.Result;
         }

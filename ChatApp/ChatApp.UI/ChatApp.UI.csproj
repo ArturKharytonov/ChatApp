@@ -13,11 +13,14 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.13" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.13" />
+    <PackageReference Include="OpenAI-DotNet" Version="7.4.4" />
     <PackageReference Include="Radzen.Blazor" Version="4.20.0" />
+    <PackageReference Include="ScrapySharp" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ChatApp.Application\ChatApp.Application.csproj" />
+    <ProjectReference Include="..\ChatApp.Infrastructure\ChatApp.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,8 @@
-﻿using ChatApp.Domain.DTOs.Http.Responses;
-using ChatApp.Domain.DTOs.Http;
+﻿using ChatApp.Domain.DTOs.Http;
 using Newtonsoft.Json;
 using System.Net.Http.Json;
 using System.Text;
+using ChatApp.Domain.DTOs.Http.Responses.Users;
 
 namespace ChatApp.IntegrationTests;
 

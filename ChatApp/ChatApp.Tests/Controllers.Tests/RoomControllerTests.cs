@@ -1,5 +1,6 @@
 ﻿using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
+using ChatApp.Domain.DTOs.Http.Responses.Rooms;
 using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.Enums;
 using ChatApp.Tests.Fixtures.Controllers;
@@ -53,17 +54,20 @@ namespace ChatApp.Tests.Controllers.Tests
         }
 
         [Theory]
-        [InlineData("Room1", "123", true, 1)] // Valid scenario
+        [InlineData("Room1", "123", true, 1)] // Valid scenario // fall
         [InlineData("Room2", "", false, null)] // Invalid scenario
         public async Task CreateRoom_ReturnsExpectedResult(string roomName, string userId, bool expectOkResult, int? expectedRoomId)
         {
             // Arrange
+            var assistantId = "imitation of id";
+            _fixture.OpenAiService.Setup(service => service.CreateAssistantAsync(roomName))
+                .ReturnsAsync(assistantId);
+
             _fixture.UserContext.Setup(context => context.GetUserId())
                 .Returns(userId);
 
-            _fixture.RoomService.Setup(service => service.CreateRoom(roomName, userId))
+            _fixture.RoomService.Setup(service => service.CreateRoom(roomName, userId, assistantId)) // add assistant id
                 .ReturnsAsync(expectedRoomId);
-
 
             // Act
             var result = await _fixture.RoomController.CreateRoom(roomName);
@@ -71,7 +75,8 @@ namespace ChatApp.Tests.Controllers.Tests
             // Assert
             _fixture.UserContext.Verify(context => context.GetUserId(), Times.Once);
 
-            _fixture.RoomService.Verify(service => service.CreateRoom(roomName, userId), Times.Exactly(expectOkResult ? 1 : 0));
+            _fixture.RoomService.Verify(service => service.CreateRoom(roomName, userId, assistantId), 
+                Times.Exactly(expectOkResult ? 1 : 0));
 
             if (expectOkResult)
             {

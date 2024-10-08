@@ -1,5 +1,6 @@
 ﻿using ChatApp.Domain.DTOs.Http;
-using ChatApp.Domain.DTOs.Http.Responses;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
+using ChatApp.Domain.DTOs.Http.Requests.Users;
 using ChatApp.Domain.DTOs.RoomDto;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
@@ -12,6 +13,7 @@ using Radzen.Blazor;
 using Microsoft.JSInterop;
 using ChatApp.UI.Services.SignalRService.Interfaces;
 using ChatApp.UI.Services.SignalRService;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 
 namespace ChatApp.UI.Pages.User
 {

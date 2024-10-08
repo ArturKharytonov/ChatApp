@@ -11,5 +11,6 @@ namespace ChatApp.Persistence.Common.Interfaces
         void Update(TEntity entity);
         Task DeleteAsync(TId id);
         Task<IQueryable<TEntity>> GetAllAsQueryableAsync();
+        //IQueryable<TEntity> GetAllIncluding(params Expression<Func<TEntity, object>>[] propertySelectors);
     }
 }

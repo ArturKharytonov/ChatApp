@@ -7,9 +7,9 @@ using ChatApp.Domain.DTOs.Http;
 using ChatApp.Domain.Rooms;
 using ChatApp.Domain.DTOs.UserDto;
 using ChatApp.Domain.Enums;
-using ChatApp.Domain.DTOs.Http.Responses;
 using ChatApp.Tests.Fixtures.Services;
 using FluentAssertions;
+using ChatApp.Domain.DTOs.Http.Responses.Common;
 
 namespace ChatApp.Tests.Application.Tests
 {

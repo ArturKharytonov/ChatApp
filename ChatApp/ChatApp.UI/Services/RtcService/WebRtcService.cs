@@ -1,9 +1,13 @@
 ﻿using Blazored.LocalStorage;
+using ChatApp.Domain.Users;
 using ChatApp.UI.Services.RtcService.Interfaces;
+using ChatApp.UI.Services.UserApplicationService.Interfaces;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.JSInterop;
 using Radzen;
+using System.Security.Claims;
 
 
 namespace ChatApp.UI.Services.RtcService
@@ -20,28 +24,37 @@ namespace ChatApp.UI.Services.RtcService
         public event EventHandler<IJSObjectReference>? OnRemoteStreamAcquired;
         public event Action OnCallAccepted;
         public event Action OnHangUp;
-
         private readonly DialogService _dialogService;
+
+        private readonly IUserApplicationService _userApplicationService;
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
 
         public WebRtcService(IJSRuntime js,
             NavigationManager nav,
             ILocalStorageService localStorageService,
-            DialogService dialogService)
+            DialogService dialogService, IUserApplicationService userApplicationService, AuthenticationStateProvider authenticationStateProvider)
         {
             _js = js;
             _nav = nav;
             _localStorageService = localStorageService;
             _dialogService = dialogService;
+            _userApplicationService = userApplicationService;
+            _authenticationStateProvider = authenticationStateProvider;
         }
 
         public async Task StartAsync()
         {
+            var apiUrl = Environment.GetEnvironmentVariable("API_URL");
+
+            await Console.Out.WriteLineAsync($"{apiUrl}/callHub");
+
             _hub = new HubConnectionBuilder()
-                .WithUrl(_nav.ToAbsoluteUri("https://localhost:7223/callHub"), o => o.AccessTokenProvider =
-                async () => await _localStorageService.GetItemAsync<string>("token"))
+                .WithUrl($"{apiUrl}/callHub", o => o.AccessTokenProvider =
+                    async () => await _localStorageService.GetItemAsync<string>("token"))
                 .Build();
+
             _jsModule = await _js.InvokeAsync<IJSObjectReference>(
-                "import", "/WebRtcService.cs.js");
+                "import", "./WebRtcService.cs.js");
 
             _jsThis = DotNetObjectReference.Create(this);
             await _jsModule.InvokeVoidAsync("initialize", _jsThis);
@@ -73,7 +86,7 @@ namespace ChatApp.UI.Services.RtcService
                     CancelButtonText = "Decline",
                 });
 
-                if(result.Value)
+                if(result!.Value)
                     _nav.NavigateTo($"/roomcall?senderId={senderId}&getterId={getterId}&requestCall=true");
                 else
                     await ConfirmationResponse(channel, result.Value);
@@ -85,9 +98,9 @@ namespace ChatApp.UI.Services.RtcService
                 {
                     OnCallAccepted.Invoke();
                     await Call();
+                    return;
                 }
-                else
-                    await _dialogService.Alert("It seems that user is busy", "Call declined!");
+                await _dialogService.Alert("It seems that user is busy", "Call declined!");
             });
 
             _hub.On("HangUp", async () =>
@@ -104,7 +117,7 @@ namespace ChatApp.UI.Services.RtcService
         {
             _signalingChannel = signalingChannel;
             var hub = await GetHub();
-            await hub.SendAsync("join", signalingChannel);
+            await hub.SendAsync("Join", signalingChannel);
         }
         public async Task<IJSObjectReference> StartLocalStream()
         {
@@ -139,7 +152,6 @@ namespace ChatApp.UI.Services.RtcService
             await _hub.SendAsync("ConfirmationResponse", channel, result);
         }
 
-
         [JSInvokable]
         public async Task SendOffer(string offer)
         {
@@ -169,15 +181,21 @@ namespace ChatApp.UI.Services.RtcService
             OnRemoteStreamAcquired?.Invoke(this, stream);
         }
 
-        public async Task RegisterUserSignalGroupsAsync()
+        private async Task RegisterUserSignalGroupsAsync()
         {
-            //var groupIds = new List<int>(); // get all groups ids where user exist
-            await _hub.SendAsync("RegisterMultipleGroupsAsync");
-        }
+            var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            if (state.User.Identity.IsAuthenticated)
+            {
+                var users = await _userApplicationService.GetAllUsers();
+                var userId = state.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                await _hub!.SendAsync("RegisterMultipleGroupsAsync", users.Users, int.Parse(userId!));
+            }
+        } 
 
         public async Task AskForConfirmation(string channel, int senderId, int getterId)
         {
-            await _hub.SendAsync("AskForConfirmation", channel, senderId, getterId);
+            var hub = await GetHub();
+            await hub.SendAsync("AskForConfirmation", channel, senderId, getterId);
         }
     }
 }

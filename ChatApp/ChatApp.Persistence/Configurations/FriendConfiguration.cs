@@ -1,17 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ChatApp.Domain.Friends;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ChatApp.Persistence.Configurations
 {
-    internal class FriendConfiguration : IEntityTypeConfiguration<Domain.Friends.Friend>
+    internal class FriendConfiguration : IEntityTypeConfiguration<Friend>
     {
-        public void Configure(EntityTypeBuilder<Domain.Friends.Friend> builder)
+        public void Configure(EntityTypeBuilder<Friend> builder)
         {
             builder.HasKey(e => e.Id).HasName("PK__Friends__3214EC076A668A68");
 

@@ -1,6 +1,10 @@
 using System.Configuration;
 using System.Security.Claims;
 using System.Text;
+using ChatApp.Application.Services.AmazonService;
+using ChatApp.Application.Services.AmazonService.Interfaces;
+using ChatApp.Application.Services.FileService;
+using ChatApp.Application.Services.FileService.Interface;
 using ChatApp.Application.Services.ISqlService;
 using ChatApp.Application.Services.ISqlService.Interfaces;
 using ChatApp.Application.Services.JwtHandler;
@@ -17,11 +21,12 @@ using ChatApp.Application.Services.UserService;
 using ChatApp.Application.Services.UserService.Interfaces;
 using ChatApp.Domain.DTOs.MessageDto;
 using ChatApp.Domain.DTOs.RoomDto;
-using ChatApp.Domain.Mapping;
 using ChatApp.Domain.Users;
 using ChatApp.Persistence.Context;
 using ChatApp.Persistence.UnitOfWork;
 using ChatApp.Persistence.UnitOfWork.Interfaces;
+using ChatApp.UI.Services.OpenAiService;
+using ChatApp.UI.Services.OpenAiService.Interfaces;
 using ChatApp.WebAPI.Hubs.Call;
 using ChatApp.WebAPI.Hubs.Chat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -37,9 +42,9 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
         builder.Services.AddDbContext<ChatDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 
         builder.Services.AddIdentity<User, IdentityRole<int>>()
             .AddEntityFrameworkStores<ChatDbContext>()
@@ -104,7 +109,10 @@ public class Program
 
         builder.Services.AddScoped<IJwtService, JwtService>();
         builder.Services.AddScoped<IUserContext, UserContext>();
+        builder.Services.AddScoped<IOpenAiService, OpenAiService>();
 
+        builder.Services.AddScoped<IAmazonService, AmazonService>();
+        builder.Services.AddScoped<IFileService, FileService>();
         builder.Services.AddScoped<IMessageService, MessageService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IRoomService, RoomService>();
@@ -112,8 +120,6 @@ public class Program
         builder.Services.AddScoped<IQueryBuilder<User>, QueryBuilder<User>>();
         builder.Services.AddScoped<IQueryBuilder<RoomDto>, QueryBuilder<RoomDto>>();
         builder.Services.AddScoped<IQueryBuilder<MessageDto>, QueryBuilder<MessageDto>>();
-
-        builder.Services.AddAutoMapper(typeof(MappingProfile));
 
         builder.Services.AddSignalR();
 
@@ -153,15 +159,12 @@ public class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
         app.UseHttpsRedirection();
-        app.UseRouting();
         app.UseCors();
+        app.UseRouting();
 
         app.UseAuthentication();
         app.UseAuthorization();

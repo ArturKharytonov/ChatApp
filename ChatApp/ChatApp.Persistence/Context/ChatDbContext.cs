@@ -2,15 +2,15 @@
 using ChatApp.Domain.Messages;
 using ChatApp.Domain.Rooms;
 using ChatApp.Domain.Users;
-using ChatApp.Domain.UsersAndRooms;
 using ChatApp.Persistence.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using File = ChatApp.Domain.Files.File;
 
 namespace ChatApp.Persistence.Context;
 
-public partial class ChatDbContext : IdentityDbContext<User, IdentityRole<int>, int>
+public class ChatDbContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
     public ChatDbContext() { }
 
@@ -22,6 +22,7 @@ public partial class ChatDbContext : IdentityDbContext<User, IdentityRole<int>, 
     public DbSet<Message> Messages { get; set; }
     public DbSet<Room> Rooms { get; set; }
     public DbSet<User> AspNetUsers { get; set; }
+    public DbSet<File> Files { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -30,9 +31,8 @@ public partial class ChatDbContext : IdentityDbContext<User, IdentityRole<int>, 
         modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new MessageConfiguration());
         modelBuilder.ApplyConfiguration(new RoomConfiguration());
-        
+        modelBuilder.ApplyConfiguration(new FileConfiguration());
+
         base.OnModelCreating(modelBuilder);
     }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

@@ -1,22 +1,25 @@
 ﻿"use strict";
 // Set up media stream constant and parameters.
 const mediaStreamConstraints = {
-    video: true
-    // audio: true
+    video: true,
+    //audio: true
 };
 
 // Set up to exchange only video.
 const offerOptions = {
-    offerToReceiveVideo: 1
-    // offerToReceiveAudio: 1
+    offerToReceiveVideo: 1,
+    //offerToReceiveAudio: 1
 };
 
 const servers = {
     iceServers: [
         {
-            urls: "turn:coturn.myserver.com:3478",
-            username: "username",
-            credential: "password"
+            //urls: "turn:coturn.myserver.com:3478",
+            //username: "username",
+            //credential: "password"
+            urls: "TURN:freestun.net:3479",
+            username: "free",
+            credential: "free"
         }
     ]
 }
@@ -117,6 +120,8 @@ export function hangupAction() {
     peerConnection.close();
     peerConnection = null;
     console.log("Ending call.");
+    isOffered = false;
+    isOffering = false;
 }
 
 // Handles remote MediaStream success by handing the stream to the blazor component.

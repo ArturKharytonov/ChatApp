@@ -17,7 +17,7 @@ public class ChatWebApplicationFactory : WebApplicationFactory<Program>
 {
     private UserManager<User> _userManager;
     private ChatDbContext _context;
-    public readonly string ConnectionString = "Server = (localdb)\\mssqllocaldb; Database = chat_app_db_test; Trusted_Connection = True; MultipleActiveResultSets=True;";
+    public readonly string ConnectionString = "Data Source=DESKTOP-V85MLET;Database=chat_app_db_test;Trusted_Connection=True; TrustServerCertificate=True";
     
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -83,9 +83,9 @@ public class ChatWebApplicationFactory : WebApplicationFactory<Program>
     {
         return new List<Room>
         {
-            new() { Name = "roomForMessages"},
-            new() { Name = "roomForGetting" },
-            new() { Name = "roomForParticipants" }
+            new() { Name = "roomForMessages", AssistantId = "123", CreatorId = 123},
+            new() { Name = "roomForGetting",AssistantId = "123",  CreatorId = 123},
+            new() { Name = "roomForParticipants", AssistantId = "123", CreatorId = 123}
         };
     }
 

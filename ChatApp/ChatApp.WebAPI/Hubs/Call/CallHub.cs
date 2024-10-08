@@ -1,20 +1,19 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ChatApp.Domain.DTOs.UserDto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.WebAPI.Hubs.Call
 {
+    [Authorize]
     public class CallHub : Hub
     {
-        private readonly IEnumerable<string> calls = new List<string>();
-
-        public async Task Join(string channel)
+        public async Task Join(string chanel)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, channel);
-            await Clients.OthersInGroup(channel).SendAsync("Join", Context.ConnectionId);
+            await Groups.AddToGroupAsync(Context.ConnectionId, chanel);
         }
-        public async Task HangUp(string channel)
+        public async Task HangUp(string chanel)
         {
-            await Clients.OthersInGroup(channel).SendAsync("HangUp");
+            await Clients.OthersInGroup(chanel).SendAsync("HangUp");
         }
 
         public async Task SignalWebRtc(string channel, string type, string payload)
@@ -22,13 +21,15 @@ namespace ChatApp.WebAPI.Hubs.Call
             await Clients.OthersInGroup(channel).SendAsync("SignalWebRtc", channel, type, payload);
         }
 
-        public async Task RegisterMultipleGroupsAsync() //IEnumerable<(int, int)> groupsId
+        public async Task RegisterMultipleGroupsAsync(List<UserDto> users, int currentUserId)
         {
-            var groupsId = new List<(int, int)> { (1, 3), (3, 1) };
-            var tasks = groupsId
-                .Select(id => $"video-{id.Item1}-{id.Item2}")
-                .Select(groupName => Groups.AddToGroupAsync(Context.ConnectionId, groupName))
-                .ToList();
+            var tasks = new List<Task>();
+            foreach (var user in
+                     users.Where(user => user.Id != currentUserId))
+            {
+                tasks.Add(Groups.AddToGroupAsync(Context.ConnectionId, $"video-{currentUserId}-{user.Id}"));
+                tasks.Add(Groups.AddToGroupAsync(Context.ConnectionId, $"video-{user.Id}-{currentUserId}"));
+            }
             await Task.WhenAll(tasks);
         }
 
