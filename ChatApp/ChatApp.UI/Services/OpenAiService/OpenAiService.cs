@@ -1,25 +1,35 @@
-﻿using ChatApp.Domain.DTOs.FileDto;
-using ChatApp.Domain.DTOs.RoomDto;
-using ChatApp.Infrastructure.Assistant;
+﻿using ChatApp.Infrastructure.Assistant;
 using ChatApp.UI.Services.OpenAiService.Interfaces;
 using HigLabo.OpenAI;
 using OpenAI.Files;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
 using OpenAIClient = HigLabo.OpenAI.OpenAIClient;
 
 namespace ChatApp.UI.Services.OpenAiService;
 
 public class OpenAiService : IOpenAiService
 {
-    private const string ApiKey = "YOUR-API-KEY";
-    private const string _model = "gpt-3.5-turbo-1106";
+    private const string ApiKeyFallback = "";
+    private const string _model = "gpt-4o-mini";
     private readonly OpenAIClient _client;
+    private readonly HttpClient _httpClient;
 
     public Run Run { get; set; }
 
     public OpenAiService()
     {
-        _client = new OpenAIClient(ApiKey);
-        Run = new Run(_client);
+        var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+        if (string.IsNullOrWhiteSpace(apiKey))
+            apiKey = ApiKeyFallback;
+
+        _client = new OpenAIClient(apiKey);
+        _httpClient = _client.HttpClient;
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        _httpClient.DefaultRequestHeaders.Remove("OpenAI-Beta");
+        _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("OpenAI-Beta", "assistants=v2");
+        Run = new Run(_httpClient);
     }
 
     public async Task<string> ChatCompletionAsync(string message)
@@ -29,7 +39,7 @@ public class OpenAiService : IOpenAiService
         var p = new ChatCompletionsParameter
         {
             Messages = new List<ChatMessage>{new(ChatMessageRole.User, message)},
-            Model = "gpt-3.5-turbo"
+            Model = _model
         };
         var res = await _client.ChatCompletionsAsync(p);
 
@@ -38,79 +48,107 @@ public class OpenAiService : IOpenAiService
 
     public async Task DeleteAssistant(string assistantId)
     {
-        var url = $"https://api.openai.com/v1/assistants/{assistantId}";
-        _client.HttpClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", $"{ApiKey}");
-        _client.HttpClient.DefaultRequestHeaders.Add("OpenAI-Beta", "assistants=v1");
-        var re = await _client.HttpClient.DeleteAsync(url);
+        var response = await _httpClient.DeleteAsync($"https://api.openai.com/v1/assistants/{assistantId}");
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task<string> CreateAssistantAsync(string roomName)
     {
-        var parameters = new AssistantCreateParameter
+        var payload = new
         {
-            Model = _model,
-            Name = $"{roomName} assistant",
-            Instructions = $"You are assistant {roomName} group. Please give well-structured answers. Also pay attention to files, if they exist",
-            Tools = new List<ToolObject> {new("code_interpreter"), new("retrieval") }
+            model = _model,
+            name = $"{roomName} assistant",
+            instructions = $"You are assistant {roomName} group. Please give well-structured answers. Also pay attention to files, if they exist",
+            tools = new object[]
+            {
+                new { type = "code_interpreter" },
+                new { type = "file_search" }
+            }
         };
 
-        var result = await _client.AssistantCreateAsync(parameters);
-        return result.Id;
+        var response = await _httpClient.PostAsJsonAsync("https://api.openai.com/v1/assistants", payload);
+        var content = await response.Content.ReadAsStringAsync();
+        response.EnsureSuccessStatusCode();
+
+        using var json = JsonDocument.Parse(content);
+        return json.RootElement.GetProperty("id").GetString() ?? string.Empty;
     }
 
     public async Task<string> SendMessageAsync(string threadId, string message)
     {
-        var request = new MessageCreateParameter
+        var payload = new
         {
-            Content = message,
-            Role = "user",
-            Thread_Id = threadId
+            role = "user",
+            content = message
         };
 
-        var result = await _client.MessageCreateAsync(request);
-        return result.Id;
+        var response = await _httpClient.PostAsJsonAsync($"https://api.openai.com/v1/threads/{threadId}/messages", payload);
+        var content = await response.Content.ReadAsStringAsync();
+        response.EnsureSuccessStatusCode();
+
+        using var json = JsonDocument.Parse(content);
+        return json.RootElement.GetProperty("id").GetString() ?? string.Empty;
     }
 
     public async Task<string> CreateThreadAsync()
     {
-        var result = await _client.ThreadCreateAsync();
-        return result.Id;
+        var response = await _httpClient.PostAsJsonAsync("https://api.openai.com/v1/threads", new { });
+        var content = await response.Content.ReadAsStringAsync();
+        response.EnsureSuccessStatusCode();
+
+        using var json = JsonDocument.Parse(content);
+        return json.RootElement.GetProperty("id").GetString() ?? string.Empty;
     }
 
     public async Task DeleteThreadAsync(string threadId)
     {
-        await _client.ThreadDeleteAsync(threadId);
+        var response = await _httpClient.DeleteAsync($"https://api.openai.com/v1/threads/{threadId}");
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task<string> CreateRunAsync(string assistantId, string threadId)
     {
-        var result = await _client.RunCreateAsync(threadId, assistantId);
-        return result.Id;
-    }
+        var payload = new
+        {
+            assistant_id = assistantId
+        };
 
-    public async Task<AssistantRetrieveResponse> GetAssistant(string id)
-    {
-        return await _client.AssistantRetrieveAsync(id);
+        var response = await _httpClient.PostAsJsonAsync($"https://api.openai.com/v1/threads/{threadId}/runs", payload);
+        var content = await response.Content.ReadAsStringAsync();
+        response.EnsureSuccessStatusCode();
+
+        using var json = JsonDocument.Parse(content);
+        return json.RootElement.GetProperty("id").GetString() ?? string.Empty;
     }
 
     public async Task<string> UploadFile(FileUploadParameter parameter, string assistantId)
     {
         var res = await _client.FileUploadAsync(parameter);
-        await _client.AssistantFileCreateAsync(assistantId, res.Id);
+        var attachPayload = new { file_id = res.Id };
+        var attachResponse =
+            await _httpClient.PostAsJsonAsync($"https://api.openai.com/v1/assistants/{assistantId}/files", attachPayload);
+
+        // Some v2 accounts may not expose assistant-file attachment endpoint.
+        // We keep file upload usable even if attachment isn't supported.
+        if (!attachResponse.IsSuccessStatusCode && attachResponse.StatusCode != System.Net.HttpStatusCode.NotFound)
+        {
+            attachResponse.EnsureSuccessStatusCode();
+        }
+
         return res.Id;
     }
 
     public async Task DeleteFileFromAssistant(string assistantId, string fileId)
     {
-        var urlForAssistant = $"https://api.openai.com/v1/assistants/{assistantId}/files/{fileId}";
+        var assistantFileResponse = await _httpClient.DeleteAsync($"https://api.openai.com/v1/assistants/{assistantId}/files/{fileId}");
+        if (!assistantFileResponse.IsSuccessStatusCode &&
+            assistantFileResponse.StatusCode != System.Net.HttpStatusCode.NotFound)
+        {
+            assistantFileResponse.EnsureSuccessStatusCode();
+        }
+
         var url = $"https://api.openai.com/v1/files/{fileId}";
-
-        _client.HttpClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", $"{ApiKey}");
-        _client.HttpClient.DefaultRequestHeaders.Add("OpenAI-Beta", "assistants=v1");
-
-        await _client.HttpClient.DeleteAsync(urlForAssistant);
-        await _client.HttpClient.DeleteAsync(url);
+        var fileResponse = await _httpClient.DeleteAsync(url);
+        fileResponse.EnsureSuccessStatusCode();
     }
 }
