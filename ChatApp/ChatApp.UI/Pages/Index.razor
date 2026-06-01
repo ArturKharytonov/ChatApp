@@ -1,32 +1,23 @@
 ﻿@page "/"
 
-<div class="container">
-    <header>
-        <h1>Welcome to Chat App</h1>
-        <p>Connect, chat, and have fun!</p>
-    </header>
+<div class="panel">
+    <h1 class="page-title">Welcome to ChatApp</h1>
+    <p style="margin: 0; color: var(--app-muted);">
+        Connect with your team, manage rooms, share files, and get AI help right inside your chats.
+    </p>
 </div>
 
-<style>
-    body {
-        font-family: 'Arial', sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f8f8f8;
-    }
-
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        text-align: center;
-    }
-
-    header {
-        margin-bottom: 20px;
-    }
-
-    main {
-        margin-bottom: 40px;
-    }
-</style>
+<div class="toolbar">
+    <div class="panel">
+        <h4 style="margin-top: 0;">Rooms</h4>
+        <p style="margin: 0; color: var(--app-muted);">Create and manage chat spaces for different topics or teams.</p>
+    </div>
+    <div class="panel">
+        <h4 style="margin-top: 0;">Messages</h4>
+        <p style="margin: 0; color: var(--app-muted);">Quickly browse message history and keep conversations organized.</p>
+    </div>
+    <div class="panel">
+        <h4 style="margin-top: 0;">Files + AI</h4>
+        <p style="margin: 0; color: var(--app-muted);">Upload files to your rooms and interact with AI assistants.</p>
+    </div>
+</div>

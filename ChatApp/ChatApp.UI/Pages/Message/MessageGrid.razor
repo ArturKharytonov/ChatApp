@@ -4,8 +4,11 @@
 @attribute [Authorize]
 
 
-<div class="col-md-6 col-lg-4 p-3">
-    <RadzenCard>
+<h3 class="page-title">Messages</h3>
+
+<div class="panel">
+    <div class="toolbar">
+    <RadzenCard style="margin:0;">
         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Search</RadzenText>
         <RadzenTextBox Placeholder="type..." @oninput=@(args => OnSearchChangeAsync(args.Value.ToString())) class="w-100" />
     </RadzenCard>
@@ -23,6 +26,7 @@
         </Items>
     </RadzenSelectBar>
     <RadzenDropDown Placeholder="Sort Column" Disabled="!Sorting" @bind-Value=@SortFieldValue TValue="MessageColumnsSorting" Data="@SortingFieldsDropDown" Change="async () => await OnSortChangeAsync()" />
+    </div>
 </div>
 
 <RadzenDataGrid FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
