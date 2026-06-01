@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration.UserSecrets;
 using Newtonsoft.Json;
 using System.Text;
 using System.Web;
+using ChatApp.Domain.DTOs.Http.Requests.Messages;
 using Xunit.Sdk;
 
 namespace ChatApp.IntegrationTests.Controller.Tests;

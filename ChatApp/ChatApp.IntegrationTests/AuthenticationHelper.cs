@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System.Net.Http.Json;
 using System.Text;
+using ChatApp.Domain.DTOs.Http.Requests.Users;
 using ChatApp.Domain.DTOs.Http.Responses.Users;
 
 namespace ChatApp.IntegrationTests;

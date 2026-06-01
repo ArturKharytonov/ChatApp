@@ -1,7 +1,5 @@
 using Blazored.LocalStorage;
 using ChatApp.UI;
-using ChatApp.UI.Services.AmazonApplicationService;
-using ChatApp.UI.Services.AmazonApplicationService.Interfaces;
 using ChatApp.UI.Services.CustomAuthenticationState;
 using ChatApp.UI.Services.FIleApplicationService;
 using ChatApp.UI.Services.FIleApplicationService.Interfaces;
@@ -45,7 +43,6 @@ builder.Services.AddScoped<IWebRtcService, WebRtcService>();
 builder.Services.AddScoped<IOpenAiService, OpenAiService>();
 
 
-builder.Services.AddScoped<IAmazonApplicationService, AmazonApplicationService>();
 builder.Services.AddScoped<IFileApplicationService, FileApplicationService>();
 builder.Services.AddScoped<IMessageApplicationService, MessageApplicationService>();
 builder.Services.AddScoped<IRoomApplicationService, RoomApplicationService>();

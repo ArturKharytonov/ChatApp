@@ -1,8 +1,5 @@
-using System.Configuration;
 using System.Security.Claims;
 using System.Text;
-using ChatApp.Application.Services.AmazonService;
-using ChatApp.Application.Services.AmazonService.Interfaces;
 using ChatApp.Application.Services.FileService;
 using ChatApp.Application.Services.FileService.Interface;
 using ChatApp.Application.Services.ISqlService;
@@ -111,7 +108,6 @@ public class Program
         builder.Services.AddScoped<IUserContext, UserContext>();
         builder.Services.AddScoped<IOpenAiService, OpenAiService>();
 
-        builder.Services.AddScoped<IAmazonService, AmazonService>();
         builder.Services.AddScoped<IFileService, FileService>();
         builder.Services.AddScoped<IMessageService, MessageService>();
         builder.Services.AddScoped<IUserService, UserService>();

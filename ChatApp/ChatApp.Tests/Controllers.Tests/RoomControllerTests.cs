@@ -1,4 +1,5 @@
 ﻿using ChatApp.Domain.DTOs.Http;
+using ChatApp.Domain.DTOs.Http.Requests.Common;
 using ChatApp.Domain.DTOs.Http.Responses.Common;
 using ChatApp.Domain.DTOs.Http.Responses.Rooms;
 using ChatApp.Domain.DTOs.RoomDto;

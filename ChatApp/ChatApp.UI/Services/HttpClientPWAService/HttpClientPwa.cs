@@ -29,9 +29,6 @@ namespace ChatApp.UI.Services.HttpClientPWAService
         public static string DeleteAllMessages => GetApiUrl("/api/message/in_room");
         public static string GetFilesFromUser => GetApiUrl("/api/files?");
         public static string DeleteFile => GetApiUrl("/api/files?");
-        public static string GetAmazonPage => GetApiUrl("/api/amazon?");
-
-
         private static string GetApiUrl(string endpoint)
         {
             var apiUrl = Environment.GetEnvironmentVariable("API_URL"); 

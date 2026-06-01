@@ -1,4 +1,5 @@
 ﻿using ChatApp.Domain.DTOs.Http;
+using ChatApp.Domain.DTOs.Http.Requests.Users;
 using ChatApp.Domain.DTOs.Http.Responses.Users;
 using ChatApp.Domain.Users;
 using ChatApp.Tests.Fixtures.Controllers;

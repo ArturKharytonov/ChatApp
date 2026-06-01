@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using ChatApp.Domain.DTOs.Http;
 using Newtonsoft.Json;
 using System.Text;
+using ChatApp.Domain.DTOs.Http.Requests.Users;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using ChatApp.Domain.DTOs.Http.Responses.Users;
