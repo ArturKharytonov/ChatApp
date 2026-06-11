@@ -12,7 +12,7 @@ namespace ChatApp.UI.Services.UserApplicationService.Interfaces
         Task<AddUserToChatResponseDto> AddUserToGroup(AddUserToRoomDto user);
         Task<UserGroupsResponseDto?> GetAllUserGroups();
         Task<UserDto> GetUserAsync();
-        Task<GridModelResponse<UserDto>> GetUsersAsync(GridModelDto<UserColumnsSorting> gridModelDto);
+        Task<GridModelResponse<UserDto>> GetUsersAsync(GridModelDto<UserColumnsSorting> gridModelDto, string? roomId = null);
         Task<UpdateUserCredentialResponse> UpdateUserAsync(UserDto user);
         Task<AllUsersResponseDto> GetAllUsers();
     }

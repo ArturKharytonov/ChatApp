@@ -22,16 +22,20 @@
     <Item OnClick="@OnAssistantClick">Assist</Item>
 </ContextMenu>
 
-<RadzenButton Click=@OnCallClick Text="Start call" Icon="input" ButtonStyle="ButtonStyle.Success"/>
+<div class="chat-top-actions">
+    <RadzenButton Click=@OnCallClick Text="Start call" Icon="input" ButtonStyle="ButtonStyle.Success"/>
 
+    @if (_currentUser.Id == _room.CreatorId)
+    {
+        <RadzenButton Click=@OnDeleteOfChat Text="Delete room" ButtonStyle="ButtonStyle.Danger" />
+    }
 
-@if (_currentUser.Id == _room.CreatorId)
-{
-    <RadzenButton Click=@OnDeleteOfChat Text="Delete room" ButtonStyle="ButtonStyle.Danger" />
-}
-<div style="display: flex; flex-direction: column">
-    <div>
-        <div style="display: flex; flex-direction: column; width: 80%; height: 80%; min-height: 550px; max-height: 550px; max-width: 1400px; margin-left: auto; margin-right: auto; padding: 20px; background-color: #3F3075; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); overflow: auto;">
+    <RadzenButton Click="@ToggleUserPanel" Text="@(_isUserPanelOpen ? "Hide users" : "Show users")" Icon="people" ButtonStyle="ButtonStyle.Light" />
+</div>
+
+<div class="chat-layout">
+    <div class="chat-main">
+        <div class="chat-messages-wrap">
             @if (Messages.Count > 0)
             {
                 @foreach (var message in Messages)
@@ -49,7 +53,7 @@
                     else
                     {
                         <ContextMenuTrigger WrapperTag="div" MenuId="assistant" Data="message">
-                            <div style="display: flex; flex-direction: column; padding: 2px; margin-bottom: 10px; max-width: 70%; background-color: #605396; color: #fff; align-self: flex-start; border-radius: 35px 5px 35px 5px;">
+                            <div class="message-container-other">
                                 <p style="color: #fff; margin-left: 10px; font-weight: bold; margin-bottom: 0px;">@message.SenderUsername</p>
                                 <p style="margin-left: 10px;">@message.Content</p>
                                 <span style="font-size: 0.8em; color: #fff; margin-left: 10px; align-self: flex-start;">@message.SentAt.ToString("HH:mm")</span>
@@ -60,16 +64,20 @@
             }
         </div>
 
-        <div class="input" style="height: 15%; display: flex; justify-content: center">
-            <div style="display: flex; align-items: center;">
+        <div class="chat-input-wrap">
+            <div class="chat-input-inner">
                 <RadzenTextArea Style="resize: none;" Placeholder="Enter here..." MaxLength="400" @bind-Value="@Input" class="w-100 mb-2"/>
                 <RadzenButton Icon="send" Class="btn btn-primary" Click="@OnSendClick" style="margin-left: 8px;"/>
             </div>
         </div>
     </div>
-    <div style="width: 250px;">
-        <AddUserGrid Id="@Id"/>
-    </div>
+
+    <aside class="chat-users-panel @(_isUserPanelOpen ? "open" : "collapsed")">
+        @if (_isUserPanelOpen)
+        {
+            <AddUserGrid Id="@Id"/>
+        }
+    </aside>
 </div>
 
 @code {
@@ -81,6 +89,7 @@
     private UserDto _currentUser = new();
     private RoomDto _room = new();
     private string _threadId;
+    private bool _isUserPanelOpen = false;
     
     [Inject]
     NotificationService NotificationService { get; set; } = null!;
@@ -233,10 +242,23 @@
         var message = arg.Data as MessageDto;
         _room = await RoomApplicationService.GetRoomAsync(Id);
 
-        await OpenAiService.SendMessageAsync(_threadId, message!.Content);
+        try
+        {
+            await OpenAiService.SendMessageAsync(_threadId, message!.Content);
 
-        var runId = await OpenAiService.CreateRunAsync(_room.AssistantId, _threadId);
-        Input = await OpenAiService.Run.RetrieveRunResultAsync(_threadId, runId);
+            var runId = await OpenAiService.CreateRunAsync(_room.AssistantId, _threadId);
+            Input = await OpenAiService.Run.RetrieveRunResultAsync(_threadId, runId);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Summary = "Assistant request failed",
+                Detail = ex.Message,
+                Severity = NotificationSeverity.Error,
+                Duration = 5000,
+            });
+        }
     }
 
     private void OnEditClick(ItemClickEventArgs arg)
@@ -252,5 +274,10 @@
         var message = arg.Data as MessageDto;
         await MessageApplicationService.DeleteMessageByIdAsync(message.Id);
         await SignalRService.DeleteMessageAsync(Id, message);
+    }
+
+    private void ToggleUserPanel()
+    {
+        _isUserPanelOpen = !_isUserPanelOpen;
     }
 }

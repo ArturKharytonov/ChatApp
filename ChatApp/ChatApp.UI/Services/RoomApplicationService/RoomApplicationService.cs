@@ -55,7 +55,7 @@ namespace ChatApp.UI.Services.RoomApplicationService
             {
                 ["data"] = gridModelDto.Data,
                 ["pageNumber"] = gridModelDto.PageNumber.ToString(),
-                ["column"] = gridModelDto.Column.ToString(),
+                ["column"] = gridModelDto.Column.HasValue ? gridModelDto.Column.Value.ToString() : string.Empty,
                 ["asc"] = gridModelDto.Asc.ToString(),
                 ["sorting"] = gridModelDto.Sorting.ToString()
             };

@@ -135,26 +135,43 @@ else
 
     private async Task UploadFile()
     {
-        if (File is not null && !string.IsNullOrEmpty(_roomName))
+        if (File is null || string.IsNullOrEmpty(_roomName))
         {
-            var room = await RoomApplicationService.GetRoomByNameAsync(_roomName);
-
-            if (string.IsNullOrEmpty(room.Name) || !IsUserParticipant(response, room.Id))
+            NotificationService.Notify(new NotificationMessage
             {
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Summary = "Room does not exist or you are not participant!",
-                    Severity = NotificationSeverity.Error,
-                    Duration = 3000
-                });
-                return;
-            }
-            IsProccessing = true;
-            var fileContent = await ConvertFileToByteArray();
+                Summary = "Choose file and type name of group",
+                Severity = NotificationSeverity.Warning,
+                Duration = 3000,
+            });
+            return;
+        }
 
-            StateHasChanged();
+        var selectedFile = File;
+        var selectedFileName = selectedFile.Name;
+
+        var room = await RoomApplicationService.GetRoomByNameAsync(_roomName);
+
+        if (string.IsNullOrEmpty(room.Name) || !IsUserParticipant(response, room.Id))
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Summary = "Room does not exist or you are not participant!",
+                Severity = NotificationSeverity.Error,
+                Duration = 3000
+            });
+            return;
+        }
+
+        // Read file bytes before any UI re-render. Otherwise InputFile can be disposed and
+        // Blazor loses the file reference (_blazorFilesById), causing JS null errors.
+        var fileContent = await ConvertFileToByteArray(selectedFile);
+
+        IsProccessing = true;
+        StateHasChanged();
+        try
+        {
             var fileUploadParameter = new FileUploadParameter();
-            fileUploadParameter.SetFile(File.Name, fileContent);
+            fileUploadParameter.SetFile(selectedFileName, fileContent);
             fileUploadParameter.Purpose = "assistants";
 
             var fileId = await OpenAiService.UploadFile(fileUploadParameter, room.AssistantId);
@@ -164,7 +181,7 @@ else
                 FileId = fileId,
                 RoomId = room.Id.ToString(),
                 SenderId = _userId,
-                FileName = File.Name
+                FileName = selectedFileName
             });
 
             NotificationService.Notify(new NotificationMessage
@@ -176,24 +193,30 @@ else
             File = null;
 
             FilesFromResponse = await FileApplicationService.GetAllFilesFromSpecificUser(_userId);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Summary = "File upload failed",
+                Detail = ex.Message,
+                Severity = NotificationSeverity.Error,
+                Duration = 5000
+            });
+        }
+        finally
+        {
             IsProccessing = false;
             StateHasChanged();
-            return;
         }
-        NotificationService.Notify(new NotificationMessage
-        {
-            Summary = "Choose file and type name of group",
-            Severity = NotificationSeverity.Warning,
-            Duration = 3000,
-        });
     }
 
-    private async Task<byte[]> ConvertFileToByteArray()
+    private static async Task<byte[]> ConvertFileToByteArray(IBrowserFile file)
     {
-        var buffer = new byte[File.Size];
-        await using var stream = File.OpenReadStream();
-        await stream.ReadAsync(buffer, 0, (int)File.Size);
-        return buffer;
+        await using var stream = file.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024);
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        return memoryStream.ToArray();
     }
 
     private void LoadFiles(InputFileChangeEventArgs e)

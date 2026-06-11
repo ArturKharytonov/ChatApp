@@ -29,9 +29,9 @@ namespace ChatApp.UI.Services.UserApplicationService
             var result = await _clientPwa.PostAsync<UserDto, UpdateUserCredentialResponse>(HttpClientPwa.UpdateUserCredentials, user);
             return result.Result;
         }
-        public async Task<GridModelResponse<UserDto>> GetUsersAsync(GridModelDto<UserColumnsSorting> gridModelDto)
+        public async Task<GridModelResponse<UserDto>> GetUsersAsync(GridModelDto<UserColumnsSorting> gridModelDto, string? roomId = null)
         {
-            var queryString = GenerateQueryString(gridModelDto);
+            var queryString = GenerateQueryString(gridModelDto, roomId);
 
             var result = await _clientPwa.GetAsync<GridModelResponse<UserDto>>(HttpClientPwa.GetUsersBySearch + queryString);
 
@@ -57,15 +57,16 @@ namespace ChatApp.UI.Services.UserApplicationService
             return result.Result;
         }
 
-        private static string GenerateQueryString(GridModelDto<UserColumnsSorting> gridModelDto)
+        private static string GenerateQueryString(GridModelDto<UserColumnsSorting> gridModelDto, string? roomId)
         {
             var queryParameters = new System.Collections.Specialized.NameValueCollection
             {
                 ["data"] = gridModelDto.Data,
                 ["pageNumber"] = gridModelDto.PageNumber.ToString(),
-                ["column"] = gridModelDto.Column.ToString(),
+                ["column"] = gridModelDto.Column.HasValue ? gridModelDto.Column.Value.ToString() : string.Empty,
                 ["asc"] = gridModelDto.Asc.ToString(),
-                ["sorting"] = gridModelDto.Sorting.ToString()
+                ["sorting"] = gridModelDto.Sorting.ToString(),
+                ["roomId"] = roomId
             };
 
             var queryString = string.Join("&",

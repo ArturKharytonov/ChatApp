@@ -83,22 +83,32 @@ public class RoomService : IRoomService
     }
     public async Task<GridModelResponse<RoomDto>> GetRoomsPageAsync(int userId, GridModelDto<RoomColumnsSorting> data)
     {
-        var list = await _unitOfWork
+        var query = await _unitOfWork
             .GetRepository<Room, int>()!
             .GetAllAsQueryableAsync();
-        list = list
+
+        query = query
             .Include(r => r.Users)
             .Include(r => r.Messages)
             .Include(r => r.Files)
             .Where(room => room.Users.Any(user => user.Id == userId));
 
-        var rooms = list.Select(x => x.ToChatDto());
+        // Avoid EF translation issues for mapper methods.
+        var rooms = query
+            .AsEnumerable()
+            .Select(x => x.ToChatDto())
+            .AsQueryable();
 
         if (!string.IsNullOrEmpty(data.Data))
-            rooms = rooms.Where(_queryBuilder.SearchQuery(data.Data, Enum.GetNames(data.Column.GetType())));
+        {
+            var searchColumns = data.Column.HasValue
+                ? Enum.GetNames(data.Column.Value.GetType())
+                : Enum.GetNames(typeof(RoomColumnsSorting));
+            rooms = rooms.Where(_queryBuilder.SearchQuery(data.Data, searchColumns));
+        }
 
-        if (data.Sorting)
-            rooms = _queryBuilder.OrderByQuery(rooms, data.Column.ToString(), data.Asc);
+        if (data.Sorting && data.Column.HasValue)
+            rooms = _queryBuilder.OrderByQuery(rooms, data.Column.Value.ToString(), data.Asc);
 
         var roomInformation = rooms
             .Skip(data.PageNumber * _pageSize)

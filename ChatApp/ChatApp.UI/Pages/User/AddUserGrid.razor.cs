@@ -42,7 +42,7 @@ namespace ChatApp.UI.Pages.User
                 Data = Input,
             };
 
-            return await UserApplicationService.GetUsersAsync(model);
+            return await UserApplicationService.GetUsersAsync(model, Id);
         }
         public async Task Fetch(int page)
         {
@@ -70,12 +70,25 @@ namespace ChatApp.UI.Pages.User
         {
             var selectedUser = args.Data;
 
+            if (!selectedUser.CanBeAdded)
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Summary = "User is already in this room",
+                    Severity = NotificationSeverity.Warning,
+                    Duration = 2500,
+                });
+                return;
+            }
+
             var response = await UserApplicationService.AddUserToGroup(new AddUserToRoomDto
                 { UserId = selectedUser.Id.ToString(), RoomId = Id });
 
             if (response.WasAdded)
             {
                 await SignalRService.AddToRoom(Id);
+                selectedUser.CanBeAdded = false;
+                StateHasChanged();
                 NotificationService.Notify(new NotificationMessage
                 {
                     Summary = $"User: {selectedUser.Id} was added to room",

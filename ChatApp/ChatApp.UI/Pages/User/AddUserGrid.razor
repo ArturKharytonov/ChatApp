@@ -10,6 +10,18 @@
                 Data="@Items" TItem="UserDto" RowClick="OnRowClick">
     <Columns>
         <RadzenDataGridColumn TItem="UserDto" Property="Username" Title="Username"></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="UserDto" Title="Status">
+            <Template Context="user">
+                @if (user.CanBeAdded)
+                {
+                    <span style="color:#2e7d32; font-weight:600;">Can add</span>
+                }
+                else
+                {
+                    <span style="color:#9e9e9e; font-weight:600;">Already in room</span>
+                }
+            </Template>
+        </RadzenDataGridColumn>
         @* <RadzenDataGridColumn TItem="UserDto">
         <Template Context="user">
         <RadzenButton Size="ButtonSize.ExtraSmall" Text="Add to chat" ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat"

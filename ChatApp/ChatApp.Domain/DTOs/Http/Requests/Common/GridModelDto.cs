@@ -3,7 +3,7 @@
 namespace ChatApp.Domain.DTOs.Http.Requests.Common;
 
 public class GridModelDto<T>
-    where T : Enum
+    where T : struct, Enum
 {
     [SupplyParameterFromQuery]
     [Parameter]

@@ -96,20 +96,40 @@ namespace ChatApp.Application.Services.UserService
             return result.Succeeded;
         }
 
-        public async Task<GridModelResponse<UserDto>> GetUsersPageAsync(GridModelDto<UserColumnsSorting> data)
+        public async Task<GridModelResponse<UserDto>> GetUsersPageAsync(GridModelDto<UserColumnsSorting> data, int? roomId = null)
         {
             var users = _userManager.Users.AsQueryable();
+            HashSet<int> usersInRoom = new();
+
+            if (roomId.HasValue)
+            {
+                var room = await _unitOfWork
+                    .GetRepository<Room, int>()!
+                    .GetByIdAsync(roomId.Value, r => r.Users);
+
+                if (room is not null)
+                    usersInRoom = room.Users.Select(u => u.Id).ToHashSet();
+            }
 
             if (!string.IsNullOrEmpty(data.Data))
-                users = users.Where(_queryBuilder.SearchQuery(data.Data, Enum.GetNames(data.Column.GetType())));
+            {
+                var searchColumns = !data.Column.HasValue
+                    ? Enum.GetNames(typeof(UserColumnsSorting))
+                    : Enum.GetNames(data.Column.GetType());
+                users = users.Where(_queryBuilder.SearchQuery(data.Data, searchColumns));
+            }
 
-            if (data.Sorting)
-                users = _queryBuilder.OrderByQuery(users, data.Column.ToString(), data.Asc);
+            if (data.Sorting && data.Column.HasValue)
+                users = _queryBuilder.OrderByQuery(users, data.Column.ToString()!, data.Asc);
 
             var userInformation = users
                 .Skip(data.PageNumber * _pageSize)
                 .Take(_pageSize)
-                .Select(user => user.ToUserDto()).ToList();
+                .Select(user => user.ToUserDto())
+                .ToList();
+
+            foreach (var user in userInformation)
+                user.CanBeAdded = !usersInRoom.Contains(user.Id);
 
             var totalCount = users.Count();
 
