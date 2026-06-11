@@ -223,6 +223,28 @@ a:hover, .btn-link:hover {
     padding: 1.25rem 0 2.25rem;
 }
 
+.auth-shell-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    min-height: 100vh;
+    padding: 1.25rem;
+    overflow: auto;
+    background:
+        radial-gradient(1200px 600px at -10% -20%, rgba(124, 77, 255, 0.18), transparent 65%),
+        radial-gradient(900px 420px at 110% 10%, rgba(91, 109, 247, 0.16), transparent 65%),
+        var(--app-bg);
+}
+
+.auth-shell-fullscreen .auth-card {
+    width: min(1240px, calc(100vw - 2.5rem));
+    margin: auto;
+    min-height: calc(100vh - 2.5rem);
+    max-height: calc(100vh - 2.5rem);
+    border-radius: 24px;
+    box-shadow: 0 28px 58px rgba(23, 34, 84, 0.22);
+}
+
 .auth-card {
     width: 100%;
     max-width: 980px;
@@ -236,8 +258,8 @@ a:hover, .btn-link:hover {
 }
 
 .auth-hero {
-    padding: 2.4rem;
-    background: linear-gradient(145deg, #2f3c95 0%, #5a2ca5 100%);
+    padding: clamp(1.75rem, 3vw, 3.2rem);
+    background: linear-gradient(150deg, #2f3c95 0%, #5530a3 60%, #6732b4 100%);
     color: #fff;
     display: flex;
     flex-direction: column;
@@ -245,20 +267,31 @@ a:hover, .btn-link:hover {
 }
 
 .auth-hero h1 {
-    margin: 0 0 0.8rem;
+    margin: 0 0 1rem;
     font-weight: 700;
-    font-size: 2rem;
+    font-size: clamp(1.65rem, 2.2vw, 2.4rem);
+    color: #fff !important;
 }
 
 .auth-hero p {
     margin: 0;
-    color: rgba(255, 255, 255, 0.86);
-    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.9) !important;
+    line-height: 1.65;
+    max-width: 44ch;
+    font-size: clamp(0.95rem, 1.1vw, 1.05rem);
 }
 
 .auth-form-panel {
-    padding: 2rem;
+    padding: clamp(1.1rem, 2.3vw, 2.1rem);
     background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+}
+
+.auth-form-content {
+    width: min(520px, 100%);
 }
 
 .auth-title {
@@ -273,7 +306,7 @@ a:hover, .btn-link:hover {
 }
 
 .auth-form {
-    margin-top: 0.35rem;
+    margin-top: 0.45rem;
 }
 
 .auth-alert {
@@ -299,6 +332,7 @@ a:hover, .btn-link:hover {
 
 .auth-submit-btn {
     margin-top: 0.8rem;
+    min-height: 42px;
 }
 
 .auth-footer-link {
@@ -314,9 +348,34 @@ a:hover, .btn-link:hover {
     font-weight: 600;
 }
 
+.auth-form-panel input,
+.auth-form-panel .rz-inputtext,
+.auth-form-panel .rz-password,
+.auth-form-panel .rz-textbox {
+    width: 100% !important;
+}
+
+.auth-form-panel .rz-login {
+    width: 100%;
+}
+
+.auth-form-panel .rz-login .rz-form-field {
+    margin-bottom: 0.75rem;
+}
+
 @media (max-width: 900px) {
     .auth-card {
         grid-template-columns: 1fr;
+    }
+
+    .auth-shell-fullscreen {
+        padding: 0.75rem;
+    }
+
+    .auth-shell-fullscreen .auth-card {
+        min-height: calc(100vh - 1.5rem);
+        max-height: none;
+        width: calc(100vw - 1.5rem);
     }
 
     .auth-hero {

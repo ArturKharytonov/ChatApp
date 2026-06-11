@@ -1,6 +1,6 @@
 ﻿@page "/login"
 
-<div class="auth-shell">
+<div class="auth-shell auth-shell-fullscreen">
     <div class="auth-card">
         <section class="auth-hero">
             <h1>Welcome back</h1>
@@ -8,24 +8,26 @@
         </section>
 
         <section class="auth-form-panel">
-            <h2 class="auth-title">Login</h2>
-            <p class="auth-subtitle">Enter your credentials to continue.</p>
+            <div class="auth-form-content">
+                <h2 class="auth-title">Login</h2>
+                <p class="auth-subtitle">Enter your credentials to continue.</p>
 
-            @if (_showErrors)
-            {
-                <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" Class="auth-alert">
-                    @Error
-                </RadzenAlert>
-            }
+                @if (_showErrors)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" Class="auth-alert">
+                        @Error
+                    </RadzenAlert>
+                }
 
-            <RadzenTemplateForm Data="@(_loginModel)" Class="auth-form">
-                <RadzenLogin AllowRegister="false" AllowResetPassword="false"
-                             Login="SubmitForm" />
-            </RadzenTemplateForm>
+                <RadzenTemplateForm Data="@(_loginModel)" Class="auth-form">
+                    <RadzenLogin AllowRegister="false" AllowResetPassword="false"
+                                 Login="SubmitForm" />
+                </RadzenTemplateForm>
 
-            <div class="auth-footer-link">
-                <span>New here?</span>
-                <RadzenButton Text="Create account" ButtonStyle="ButtonStyle.Light" Click="OnRegister" />
+                <div class="auth-footer-link">
+                    <span>New here?</span>
+                    <RadzenButton Text="Create account" ButtonStyle="ButtonStyle.Light" Click="OnRegister" />
+                </div>
             </div>
         </section>
     </div>

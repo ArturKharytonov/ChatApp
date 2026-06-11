@@ -1,6 +1,6 @@
 ﻿@page "/signup"
 
-<div class="auth-shell">
+<div class="auth-shell auth-shell-fullscreen">
     <div class="auth-card">
         <section class="auth-hero">
             <h1>Create account</h1>
@@ -8,48 +8,50 @@
         </section>
 
         <section class="auth-form-panel">
-            <h2 class="auth-title">Sign up</h2>
-            <p class="auth-subtitle">Fill in your details to create an account.</p>
+            <div class="auth-form-content">
+                <h2 class="auth-title">Sign up</h2>
+                <p class="auth-subtitle">Fill in your details to create an account.</p>
 
-            @if (_showErrors)
-            {
-                <div class="auth-errors">
-                    @if (_errors is not null)
-                    {
-                        @foreach (var error in _errors)
+                @if (_showErrors)
+                {
+                    <div class="auth-errors">
+                        @if (_errors is not null)
                         {
-                            <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" Class="auth-alert">
-                                @error
-                            </RadzenAlert>
+                            @foreach (var error in _errors)
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" Class="auth-alert">
+                                    @error
+                                </RadzenAlert>
+                            }
                         }
-                    }
+                    </div>
+                }
+
+                <RadzenTemplateForm Data="@_registerModel" Class="auth-form">
+                    <div class="auth-field-grid">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <label class="auth-label">Username</label>
+                        <RadzenTextBox @bind-Value="@_registerModel.Username" Placeholder="Enter username" class="w-100" />
+                        <ValidationMessage For="() => _registerModel.Username" />
+
+                        <label class="auth-label">Password</label>
+                        <RadzenPassword @bind-Value="@_registerModel.Password" Placeholder="Enter password" class="w-100" />
+                        <ValidationMessage For="() => _registerModel.Password" />
+
+                        <label class="auth-label">Email</label>
+                        <RadzenTextBox @bind-Value="@_registerModel.Email" Placeholder="name@example.com" class="w-100" />
+                        <ValidationMessage For="() => _registerModel.Email" />
+
+                        <RadzenButton Text="Create account" Click="SubmitForm" ButtonStyle="ButtonStyle.Primary" class="auth-submit-btn" />
+                    </div>
+                </RadzenTemplateForm>
+
+                <div class="auth-footer-link">
+                    <span>Already have an account?</span>
+                    <a href="/login">Back to login</a>
                 </div>
-            }
-
-            <RadzenTemplateForm Data="@_registerModel" Class="auth-form">
-                <div class="auth-field-grid">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
-
-                    <label class="auth-label">Username</label>
-                    <RadzenTextBox @bind-Value="@_registerModel.Username" Placeholder="Enter username" class="w-100" />
-                    <ValidationMessage For="() => _registerModel.Username" />
-
-                    <label class="auth-label">Password</label>
-                    <RadzenPassword @bind-Value="@_registerModel.Password" Placeholder="Enter password" class="w-100" />
-                    <ValidationMessage For="() => _registerModel.Password" />
-
-                    <label class="auth-label">Email</label>
-                    <RadzenTextBox @bind-Value="@_registerModel.Email" Placeholder="name@example.com" class="w-100" />
-                    <ValidationMessage For="() => _registerModel.Email" />
-
-                    <RadzenButton Text="Create account" Click="SubmitForm" ButtonStyle="ButtonStyle.Primary" class="auth-submit-btn" />
-                </div>
-            </RadzenTemplateForm>
-
-            <div class="auth-footer-link">
-                <span>Already have an account?</span>
-                <a href="/login">Back to login</a>
             </div>
         </section>
     </div>
